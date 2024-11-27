@@ -1,1 +1,1 @@
--- write sql schema here
+-- write schema definitions here
