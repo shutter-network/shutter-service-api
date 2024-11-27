@@ -1,9 +1,10 @@
 package usecase
 
-type Usecases struct {
+// regsiters usecases in this file
+type Usecase struct {
 	// Add usecases as needed
 }
 
-func NewUsecases() *Usecases {
-	return &Usecases{}
+func NewUsecase() *Usecase {
+	return &Usecase{}
 }

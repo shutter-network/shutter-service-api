@@ -17,8 +17,7 @@ const (
 	ASC  SortDirection = "ASC"
 )
 
-func NewDB(ctx context.Context) (*pgxpool.Pool, error) {
-	dbURL := getDBURL()
+func NewDB(ctx context.Context, dbURL string) (*pgxpool.Pool, error) {
 	dbpool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to connect to database")
@@ -33,7 +32,7 @@ func NewDB(ctx context.Context) (*pgxpool.Pool, error) {
 	return dbpool, nil
 }
 
-func getDBURL() string {
+func GetDBURL() string {
 	var (
 		host     = os.Getenv("DB_HOST")
 		port     = os.Getenv("DB_PORT")

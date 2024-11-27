@@ -4,10 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shutter-network/shutter-service-api/internal/usecase"
 )
 
-func NewRouter(usecases *usecase.Usecases) *gin.Engine {
+func NewRouter() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
