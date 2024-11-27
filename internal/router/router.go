@@ -1,8 +1,10 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"github.com/shutter-network/shutter-explorer/backend/internal/usecase"
+	"github.com/shutter-network/shutter-service-api/internal/usecase"
 )
 
 func NewRouter(usecases *usecase.Usecases) *gin.Engine {
@@ -12,7 +14,11 @@ func NewRouter(usecases *usecase.Usecases) *gin.Engine {
 	api := router.Group("/api")
 	{
 		hello := api.Group("/hello")
-		hello.GET("", usecases.Greeter.QueryGreeter)
+		hello.GET("", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{
+				"message": "Hello",
+			})
+		})
 	}
 	return router
 }
