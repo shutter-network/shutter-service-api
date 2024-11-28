@@ -3,6 +3,7 @@ module github.com/shutter-network/shutter-service-api
 go 1.22.0
 
 require (
+	github.com/ethereum/go-ethereum v1.13.11
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/shutter-network/contracts/v2 v2.0.0-beta.2.0.20241127163809-33e7d082ed58
 	github.com/stretchr/testify v1.9.0
@@ -36,7 +37,6 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
-	github.com/ethereum/go-ethereum v1.13.11 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -80,6 +80,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect

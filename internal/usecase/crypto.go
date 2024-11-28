@@ -9,26 +9,30 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	contractBindings "github.com/shutter-network/contracts/v2/bindings/shutterregistry"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/data"
 	httpError "github.com/shutter-network/shutter-service-api/internal/error"
 )
 
+type ShutterregistryInterface interface {
+	Registrations(opts *bind.CallOpts, identity [32]byte) (uint64, error)
+}
+
 type CryptoUsecase struct {
 	db                      *pgxpool.Pool
 	dbQuery                 *data.Queries
-	shutterRegistryContract *contractBindings.Shutterregistry
+	shutterRegistryContract ShutterregistryInterface
 	config                  *common.Config
 }
 
 func NewCryptoUsecase(
 	db *pgxpool.Pool,
-	shutterRegistryContract *contractBindings.Shutterregistry,
+	shutterRegistryContract ShutterregistryInterface,
 	config *common.Config,
 ) *CryptoUsecase {
 	return &CryptoUsecase{
@@ -58,6 +62,16 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 			"error while querying for identity from the contract",
 			"",
 			http.StatusInternalServerError,
+		)
+		return "", &err
+	}
+
+	if decryptionTimestamp == 0 {
+		log.Err(err).Msg("identity not registered")
+		err := httpError.NewHttpError(
+			"identity has not been registerd yet",
+			"",
+			http.StatusBadRequest,
 		)
 		return "", &err
 	}

@@ -3,22 +3,46 @@ package tests
 import (
 	"context"
 	cryptoRand "crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/mock"
 )
 
 func (s *TestShutterService) TestInsertDecryptionKey() {
 	ctx := context.Background()
 	eon := rand.Int63()
-	epochID, err := generateRandomBytes(32)
+	identity, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 	decryptionKey, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 
-	err = InsertDecryptionKey(ctx, s.testDB.DbInstance, eon, epochID, decryptionKey)
+	err = InsertDecryptionKey(ctx, s.testDB.DbInstance, eon, identity, decryptionKey)
 	s.Require().NoError(err)
+}
+
+func (s *TestShutterService) TestGetDecryptionKey() {
+	ctx := context.Background()
+	eon := rand.Int63()
+	identity, err := generateRandomBytes(32)
+	s.Require().NoError(err)
+	decryptionKey, err := generateRandomBytes(32)
+	s.Require().NoError(err)
+
+	err = InsertDecryptionKey(ctx, s.testDB.DbInstance, eon, identity, decryptionKey)
+	s.Require().NoError(err)
+
+	s.shutterRegistryContract.
+		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), mock.AnythingOfType("[32]uint8")).
+		Return(uint64(1), nil)
+
+	identityStringified := hex.EncodeToString(identity)
+	decKey, err := s.cryptoUsecase.GetDecryptionKey(ctx, eon, identityStringified)
+	s.Require().Nil(err)
+
+	s.Require().Equal(decKey, "0x"+hex.EncodeToString(decryptionKey))
 }
 
 func InsertDecryptionKey(ctx context.Context, db *pgxpool.Pool, eon int64, epochID, decryptionKey []byte) error {
