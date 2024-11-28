@@ -3,61 +3,145 @@ package usecase
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	contractBindings "github.com/shutter-network/contracts/v2/bindings/shutterregistry"
-	"github.com/shutter-network/shutter-service-api/internal/error"
+	"github.com/shutter-network/shutter-service-api/common"
+	"github.com/shutter-network/shutter-service-api/internal/data"
+	httpError "github.com/shutter-network/shutter-service-api/internal/error"
 )
 
 type CryptoUsecase struct {
-	DB                      *pgxpool.Pool
-	ShutterRegistryContract *contractBindings.Shutterregistry
+	db                      *pgxpool.Pool
+	dbQuery                 *data.Queries
+	shutterRegistryContract *contractBindings.Shutterregistry
+	config                  *common.Config
 }
 
 func NewCryptoUsecase(
 	db *pgxpool.Pool,
+	shutterRegistryContract *contractBindings.Shutterregistry,
+	config *common.Config,
 ) *CryptoUsecase {
 	return &CryptoUsecase{
-		DB: db,
+		db:                      db,
+		dbQuery:                 data.New(db),
+		shutterRegistryContract: shutterRegistryContract,
+		config:                  config,
 	}
 }
 
-func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int, identity string) *error.Http {
+func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identity string) (string, *httpError.Http) {
 	identityBytes, err := hex.DecodeString(strings.TrimPrefix(string(identity), "0x"))
 	if err != nil {
 		log.Err(err).Msg("err encountered while decoding identity")
-		err := error.NewHttpError(
+		err := httpError.NewHttpError(
 			"error encountered while decoding identity",
 			"",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 		)
-		return &err
+		return "", &err
 	}
 
-	decryptionTimestamp, err := uc.ShutterRegistryContract.Registrations(nil, [32]byte(identityBytes))
+	decryptionTimestamp, err := uc.shutterRegistryContract.Registrations(nil, [32]byte(identityBytes))
 	if err != nil {
 		log.Err(err).Msg("err encountered while querying contract")
-		err := error.NewHttpError(
+		err := httpError.NewHttpError(
 			"error while querying for identity from the contract",
 			"",
 			http.StatusInternalServerError,
 		)
-		return &err
+		return "", &err
 	}
 
 	currentTimestamp := time.Now().Unix()
 	if currentTimestamp < int64(decryptionTimestamp) {
 		log.Err(err).Uint64("decryptionTimestamp", decryptionTimestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
-		err := error.NewHttpError(
+		err := httpError.NewHttpError(
 			"timestamp not reached yet, decryption key requested too early",
 			"",
-			http.StatusNotFound,
+			http.StatusBadRequest,
 		)
-		return &err
+		return "", &err
 	}
-	return nil
+
+	var decryptionKey string
+
+	decKey, err := uc.dbQuery.GetDecryptionKey(ctx, data.GetDecryptionKeyParams{
+		Eon:     eon,
+		EpochID: identityBytes,
+	})
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			// no data found try querying from other keyper via http
+			decKey, err := uc.getDecryptionKey(ctx, eon, identity)
+			if err != nil {
+				err := httpError.NewHttpError(
+					err.Error(),
+					"",
+					http.StatusInternalServerError,
+				)
+				return "", &err
+			}
+			if decKey == "" {
+				err := httpError.NewHttpError(
+					"decryption doesnt exist",
+					"",
+					http.StatusNotFound,
+				)
+				return "", &err
+			}
+			decryptionKey = decKey
+		} else {
+			log.Err(err).Msg("err encountered while querying db")
+			err := httpError.NewHttpError(
+				"error while querying db",
+				"",
+				http.StatusInternalServerError,
+			)
+			return "", &err
+		}
+	} else {
+		decryptionKey = "0x" + hex.EncodeToString(decKey.DecryptionKey)
+	}
+
+	return decryptionKey, nil
+}
+
+func (uc *CryptoUsecase) getDecryptionKey(ctx context.Context, eon int64, identity string) (string, error) {
+	path := uc.config.KeyperHTTPURL.JoinPath("/decryptionKey/", fmt.Sprint(eon), "/", identity)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", path.String(), http.NoBody)
+	if err != nil {
+		return "", err
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to get decryption key for eon %d and identity %s from keyper", eon, identity)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return "", nil
+	}
+	if res.StatusCode != http.StatusOK {
+		return "", errors.Wrapf(err, "failed to get decryption key for eon %d and identity %s from keyper", eon, identity)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to read consensus client response body")
+	}
+
+	decryptionKey := string(body)
+
+	return decryptionKey, nil
 }
