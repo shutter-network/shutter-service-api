@@ -96,7 +96,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			// no data found try querying from other keyper via http
-			decKey, err := uc.getDecryptionKey(ctx, eon, identity)
+			decKey, err := uc.getDecryptionKeyFromExternalKeyper(ctx, eon, identity)
 			if err != nil {
 				err := httpError.NewHttpError(
 					err.Error(),
@@ -107,7 +107,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 			}
 			if decKey == "" {
 				err := httpError.NewHttpError(
-					"decryption doesnt exist",
+					"decryption key doesnt exist",
 					"",
 					http.StatusNotFound,
 				)
@@ -130,7 +130,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 	return decryptionKey, nil
 }
 
-func (uc *CryptoUsecase) getDecryptionKey(ctx context.Context, eon int64, identity string) (string, error) {
+func (uc *CryptoUsecase) getDecryptionKeyFromExternalKeyper(ctx context.Context, eon int64, identity string) (string, error) {
 	path := uc.config.KeyperHTTPURL.JoinPath("/decryptionKey/", fmt.Sprint(eon), "/", identity)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", path.String(), http.NoBody)
