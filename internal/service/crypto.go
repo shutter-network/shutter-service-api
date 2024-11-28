@@ -27,7 +27,7 @@ func NewCryptoService(
 	}
 }
 
-func (svc *CryptoService) QueryTop5Epochs(ctx *gin.Context) {
+func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 	eonStringified, ok := ctx.GetQuery("eon")
 	if !ok {
 		err := error.NewHttpError(
