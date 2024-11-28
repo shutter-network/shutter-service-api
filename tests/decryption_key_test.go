@@ -36,13 +36,35 @@ func (s *TestShutterService) TestGetDecryptionKey() {
 
 	s.shutterRegistryContract.
 		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), mock.AnythingOfType("[32]uint8")).
-		Return(uint64(1), nil)
+		Return(uint64(1), nil).
+		Once()
 
 	identityStringified := hex.EncodeToString(identity)
 	decKey, err := s.cryptoUsecase.GetDecryptionKey(ctx, eon, identityStringified)
 	s.Require().Nil(err)
 
 	s.Require().Equal(decKey, "0x"+hex.EncodeToString(decryptionKey))
+}
+
+func (s *TestShutterService) TestGetDecryptionKeyNotRegistered() {
+	ctx := context.Background()
+	eon := rand.Int63()
+	identity, err := generateRandomBytes(32)
+	s.Require().NoError(err)
+	decryptionKey, err := generateRandomBytes(32)
+	s.Require().NoError(err)
+
+	err = InsertDecryptionKey(ctx, s.testDB.DbInstance, eon, identity, decryptionKey)
+	s.Require().NoError(err)
+
+	s.shutterRegistryContract.
+		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), mock.AnythingOfType("[32]uint8")).
+		Return(uint64(0), nil).
+		Once()
+
+	identityStringified := hex.EncodeToString(identity)
+	_, err = s.cryptoUsecase.GetDecryptionKey(ctx, eon, identityStringified)
+	s.Require().Error(err)
 }
 
 func InsertDecryptionKey(ctx context.Context, db *pgxpool.Pool, eon int64, epochID, decryptionKey []byte) error {
