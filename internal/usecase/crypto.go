@@ -138,7 +138,7 @@ func (uc *CryptoUsecase) getDecryptionKey(ctx context.Context, eon int64, identi
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to read consensus client response body")
+		return "", errors.Wrapf(err, "failed to read keypers response body")
 	}
 
 	decryptionKey := string(body)
