@@ -11,6 +11,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type RegistrationData struct {
+	Eon       uint64
+	Timestamp uint64
+}
+
 func (s *TestShutterService) TestInsertDecryptionKey() {
 	ctx := context.Background()
 	eon := rand.Int63()
@@ -21,11 +26,6 @@ func (s *TestShutterService) TestInsertDecryptionKey() {
 
 	err = InsertDecryptionKey(ctx, s.testDB.DbInstance, eon, identity, decryptionKey)
 	s.Require().NoError(err)
-}
-
-type RegistrationData struct {
-	Eon       uint64
-	Timestamp uint64
 }
 
 func (s *TestShutterService) TestGetDecryptionKey() {
