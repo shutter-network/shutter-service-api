@@ -35,7 +35,7 @@ func (s *TestShutterService) TestGetDecryptionKey() {
 	s.Require().NoError(err)
 
 	s.shutterRegistryContract.
-		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), mock.AnythingOfType("[32]uint8")).
+		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), [32]byte(identity)).
 		Return(uint64(1), nil).
 		Once()
 
@@ -58,7 +58,7 @@ func (s *TestShutterService) TestGetDecryptionKeyNotRegistered() {
 	s.Require().NoError(err)
 
 	s.shutterRegistryContract.
-		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), mock.AnythingOfType("[32]uint8")).
+		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), [32]byte(identity)).
 		Return(uint64(0), nil).
 		Once()
 
