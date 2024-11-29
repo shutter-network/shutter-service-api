@@ -67,6 +67,16 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 		return nil, &err
 	}
 
+	if len(identityBytes) != 32 {
+		log.Err(err).Msg("identity should be of length 32")
+		err := httpError.NewHttpError(
+			"identity should be of length 32",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+
 	registrationData, err := uc.shutterRegistryContract.Registrations(nil, [32]byte(identityBytes))
 	if err != nil {
 		log.Err(err).Msg("err encountered while querying contract")

@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/ethereum/go-ethereum v1.13.11
 	github.com/jackc/pgx/v5 v5.7.1
-	github.com/shutter-network/contracts/v2 v2.0.0-beta.2.0.20241129121344-94a4748cd4ea
+	github.com/shutter-network/contracts/v2 v2.0.0-beta.2.0.20241129172533-e843e747ddb1
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 )

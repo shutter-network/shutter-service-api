@@ -21,7 +21,7 @@ type TestShutterService struct {
 	shutterRegistryContract *mock.MockShutterregistry
 }
 
-func TestMain(t *testing.T) {
+func TestShutterServiceSuite(t *testing.T) {
 	suite.Run(t, new(TestShutterService))
 }
 
@@ -30,10 +30,6 @@ func (s *TestShutterService) TearDownAllSuite() {
 }
 
 func (s *TestShutterService) SetupSuite() {
-	// ctx := context.Background()
-	// _, curFile, _, _ := runtime.Caller(0)
-	// curDir := path.Dir(curFile)
-
 	migrationsPath := "./migrations"
 	s.testDB = common.SetupTestDatabase(migrationsPath)
 	s.dbQuery = data.New(s.testDB.DbInstance)
