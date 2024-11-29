@@ -23,9 +23,15 @@ func (s *TestShutterService) TestInsertDecryptionKey() {
 	s.Require().NoError(err)
 }
 
+type RegistrationData struct {
+	Eon       uint64
+	Timestamp uint64
+}
+
 func (s *TestShutterService) TestGetDecryptionKey() {
 	ctx := context.Background()
 	eon := rand.Int63()
+	timestamp := 1732885990
 	identity, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 	decryptionKey, err := generateRandomBytes(32)
@@ -36,19 +42,28 @@ func (s *TestShutterService) TestGetDecryptionKey() {
 
 	s.shutterRegistryContract.
 		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), [32]byte(identity)).
-		Return(uint64(1), nil).
+		Return(struct {
+			Eon       uint64
+			Timestamp uint64
+		}{
+			Eon:       uint64(eon),
+			Timestamp: uint64(timestamp),
+		}, nil).
 		Once()
 
 	identityStringified := hex.EncodeToString(identity)
-	decKey, err := s.cryptoUsecase.GetDecryptionKey(ctx, eon, identityStringified)
+	data, err := s.cryptoUsecase.GetDecryptionKey(ctx, identityStringified)
 	s.Require().Nil(err)
 
-	s.Require().Equal(decKey, "0x"+hex.EncodeToString(decryptionKey))
+	s.Require().Equal(data.DecryptionKey, "0x"+hex.EncodeToString(decryptionKey))
+	s.Require().Equal(int(data.DecryptionTimestamp), timestamp)
+	s.Require().Equal(data.Identity, hex.EncodeToString(identity))
 }
 
 func (s *TestShutterService) TestGetDecryptionKeyNotRegistered() {
 	ctx := context.Background()
 	eon := rand.Int63()
+	timestamp := 1732885990
 	identity, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 	decryptionKey, err := generateRandomBytes(32)
@@ -59,11 +74,17 @@ func (s *TestShutterService) TestGetDecryptionKeyNotRegistered() {
 
 	s.shutterRegistryContract.
 		On("Registrations", mock.AnythingOfType("*bind.CallOpts"), [32]byte(identity)).
-		Return(uint64(0), nil).
+		Return(struct {
+			Eon       uint64
+			Timestamp uint64
+		}{
+			Eon:       uint64(eon),
+			Timestamp: uint64(timestamp),
+		}, nil).
 		Once()
 
 	identityStringified := hex.EncodeToString(identity)
-	_, err = s.cryptoUsecase.GetDecryptionKey(ctx, eon, identityStringified)
+	_, err = s.cryptoUsecase.GetDecryptionKey(ctx, identityStringified)
 	s.Require().Error(err)
 }
 

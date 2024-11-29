@@ -20,7 +20,19 @@ import (
 )
 
 type ShutterregistryInterface interface {
-	Registrations(opts *bind.CallOpts, identity [32]byte) (uint64, error)
+	Registrations(opts *bind.CallOpts, identity [32]byte) (
+		struct {
+			Eon       uint64
+			Timestamp uint64
+		},
+		error,
+	)
+}
+
+type GetDecryptionKeyResponse struct {
+	DecryptionKey       string
+	Identity            string
+	DecryptionTimestamp uint64
 }
 
 type CryptoUsecase struct {
@@ -43,7 +55,7 @@ func NewCryptoUsecase(
 	}
 }
 
-func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identity string) (string, *httpError.Http) {
+func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) (*GetDecryptionKeyResponse, *httpError.Http) {
 	identityBytes, err := hex.DecodeString(strings.TrimPrefix(string(identity), "0x"))
 	if err != nil {
 		log.Err(err).Msg("err encountered while decoding identity")
@@ -52,10 +64,10 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 			"",
 			http.StatusBadRequest,
 		)
-		return "", &err
+		return nil, &err
 	}
 
-	decryptionTimestamp, err := uc.shutterRegistryContract.Registrations(nil, [32]byte(identityBytes))
+	registrationData, err := uc.shutterRegistryContract.Registrations(nil, [32]byte(identityBytes))
 	if err != nil {
 		log.Err(err).Msg("err encountered while querying contract")
 		err := httpError.NewHttpError(
@@ -63,47 +75,47 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 			"",
 			http.StatusInternalServerError,
 		)
-		return "", &err
+		return nil, &err
 	}
 
-	if decryptionTimestamp == 0 {
+	if registrationData.Timestamp == 0 {
 		log.Err(err).Msg("identity not registered")
 		err := httpError.NewHttpError(
 			"identity has not been registerd yet",
 			"",
 			http.StatusBadRequest,
 		)
-		return "", &err
+		return nil, &err
 	}
 
 	currentTimestamp := time.Now().Unix()
-	if currentTimestamp < int64(decryptionTimestamp) {
-		log.Err(err).Uint64("decryptionTimestamp", decryptionTimestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
+	if currentTimestamp < int64(registrationData.Timestamp) {
+		log.Err(err).Uint64("decryptionTimestamp", registrationData.Timestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
 		err := httpError.NewHttpError(
 			"timestamp not reached yet, decryption key requested too early",
 			"",
 			http.StatusBadRequest,
 		)
-		return "", &err
+		return nil, &err
 	}
 
 	var decryptionKey string
 
 	decKey, err := uc.dbQuery.GetDecryptionKey(ctx, data.GetDecryptionKeyParams{
-		Eon:     eon,
+		Eon:     int64(registrationData.Eon),
 		EpochID: identityBytes,
 	})
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			// no data found try querying from other keyper via http
-			decKey, err := uc.getDecryptionKeyFromExternalKeyper(ctx, eon, identity)
+			decKey, err := uc.getDecryptionKeyFromExternalKeyper(ctx, int64(registrationData.Eon), identity)
 			if err != nil {
 				err := httpError.NewHttpError(
 					err.Error(),
 					"",
 					http.StatusInternalServerError,
 				)
-				return "", &err
+				return nil, &err
 			}
 			if decKey == "" {
 				err := httpError.NewHttpError(
@@ -111,7 +123,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 					"",
 					http.StatusNotFound,
 				)
-				return "", &err
+				return nil, &err
 			}
 			decryptionKey = decKey
 		} else {
@@ -121,13 +133,17 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, eon int64, identi
 				"",
 				http.StatusInternalServerError,
 			)
-			return "", &err
+			return nil, &err
 		}
 	} else {
 		decryptionKey = "0x" + hex.EncodeToString(decKey.DecryptionKey)
 	}
 
-	return decryptionKey, nil
+	return &GetDecryptionKeyResponse{
+		DecryptionKey:       decryptionKey,
+		Identity:            identity,
+		DecryptionTimestamp: registrationData.Timestamp,
+	}, nil
 }
 
 func (uc *CryptoUsecase) getDecryptionKeyFromExternalKeyper(ctx context.Context, eon int64, identity string) (string, error) {
