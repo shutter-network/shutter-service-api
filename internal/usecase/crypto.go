@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -13,6 +12,7 @@ import (
 	cryptorand "crypto/rand"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
@@ -188,7 +188,16 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 	}, nil
 }
 
-func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, timestamp uint64, identityPrefixStringified string) (*GetDataForEncryptionResponse, *httpError.Http) {
+func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, sender string, identityPrefixStringified string) (*GetDataForEncryptionResponse, *httpError.Http) {
+	if !ethCommon.IsHexAddress(sender) {
+		log.Warn().Str("sender", sender).Msg("invalid sender address")
+		err := httpError.NewHttpError(
+			"invalid sender address",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
 	var identityPrefix shcrypto.Block
 
 	if len(identityPrefixStringified) > 0 {
@@ -271,7 +280,7 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, timestamp uin
 		return nil, &err
 	}
 
-	identity := computeIdentity(identityPrefix[:], timestamp)
+	identity := computeIdentity(identityPrefix[:], ethCommon.HexToAddress(sender))
 
 	return &GetDataForEncryptionResponse{
 		Eon:            eon,
@@ -310,10 +319,7 @@ func (uc *CryptoUsecase) getDecryptionKeyFromExternalKeyper(ctx context.Context,
 	return decryptionKey, nil
 }
 
-func computeIdentity(prefix []byte, timestamp uint64) *shcrypto.EpochID {
-	bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytes, timestamp)
-
-	imageBytes := append(prefix, bytes...)
+func computeIdentity(prefix []byte, sender ethCommon.Address) *shcrypto.EpochID {
+	imageBytes := append(prefix, sender.Bytes()...)
 	return shcrypto.ComputeEpochID(identitypreimage.IdentityPreimage(imageBytes).Bytes())
 }

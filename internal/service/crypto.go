@@ -2,12 +2,10 @@ package service
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rs/zerolog/log"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/error"
 	"github.com/shutter-network/shutter-service-api/internal/usecase"
@@ -51,23 +49,11 @@ func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 }
 
 func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
-	timestampStringified, ok := ctx.GetQuery("timestamp")
+	address, ok := ctx.GetQuery("address")
 	if !ok {
 		err := error.NewHttpError(
 			"query parameter not found",
-			"timestamp query parameter is required",
-			http.StatusBadRequest,
-		)
-		ctx.Error(err)
-		return
-	}
-
-	timestamp, err := strconv.Atoi(timestampStringified)
-	if err != nil {
-		log.Err(err).Msg("err decoding timestamp")
-		err := error.NewHttpError(
-			"unable to decode timestamp",
-			"valid timestamp query parameter is required",
+			"address query parameter is required",
 			http.StatusBadRequest,
 		)
 		ctx.Error(err)
@@ -79,7 +65,7 @@ func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
 		identityPrefix = ""
 	}
 
-	data, httpErr := svc.CryptoUsecase.GetDataForEncryption(ctx, uint64(timestamp), identityPrefix)
+	data, httpErr := svc.CryptoUsecase.GetDataForEncryption(ctx, address, identityPrefix)
 	if httpErr != nil {
 		ctx.Error(httpErr)
 		return
