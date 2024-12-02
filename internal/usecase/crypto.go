@@ -17,7 +17,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"github.com/shutter-network/rolling-shutter/rolling-shutter/medley/identitypreimage"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/data"
 	httpError "github.com/shutter-network/shutter-service-api/internal/error"
@@ -56,6 +55,7 @@ type GetDataForEncryptionResponse struct {
 	Eon            uint64
 	Identity       string
 	IdentityPrefix string
+	EonKey         string
 }
 
 type CryptoUsecase struct {
@@ -280,12 +280,13 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, sender string
 		return nil, &err
 	}
 
-	identity := computeIdentity(identityPrefix[:], ethCommon.HexToAddress(sender))
+	identity := common.ComputeIdentity(identityPrefix[:], ethCommon.HexToAddress(sender))
 
 	return &GetDataForEncryptionResponse{
 		Eon:            eon,
 		Identity:       hex.EncodeToString(identity.Marshal()),
 		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
+		EonKey:         hex.EncodeToString(eonKeyBytes),
 	}, nil
 }
 
@@ -317,9 +318,4 @@ func (uc *CryptoUsecase) getDecryptionKeyFromExternalKeyper(ctx context.Context,
 	decryptionKey := string(body)
 
 	return decryptionKey, nil
-}
-
-func computeIdentity(prefix []byte, sender ethCommon.Address) *shcrypto.EpochID {
-	imageBytes := append(prefix, sender.Bytes()...)
-	return shcrypto.ComputeEpochID(identitypreimage.IdentityPreimage(imageBytes).Bytes())
 }

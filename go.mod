@@ -8,11 +8,13 @@ require (
 	github.com/shutter-network/contracts/v2 v2.0.0-beta.2.0.20241129172533-e843e747ddb1
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.34.0
+	gotest.tools v2.2.0+incompatible
 )
 
 require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/getsentry/sentry-go v0.18.0 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 )
 
@@ -89,7 +91,7 @@ require (
 	github.com/shutter-network/rolling-shutter/rolling-shutter v0.0.7-0.20241107145313-a3a0ae8e79e6
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/supranational/blst v0.3.12 // indirect
+	github.com/supranational/blst v0.3.12
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

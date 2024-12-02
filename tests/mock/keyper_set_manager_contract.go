@@ -10,6 +10,6 @@ type MockKeyperSetManager struct {
 }
 
 func (m *MockKeyperSetManager) GetKeyperSetIndexByBlock(opts *bind.CallOpts, blockNumber uint64) (uint64, error) {
-	args := m.Called(opts, blockNumber)
+	args := m.Called(nil, blockNumber)
 	return args.Get(0).(uint64), args.Error(1)
 }

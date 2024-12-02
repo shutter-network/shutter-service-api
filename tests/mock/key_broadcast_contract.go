@@ -10,6 +10,6 @@ type MockKeyBroadcast struct {
 }
 
 func (m *MockKeyBroadcast) GetEonKey(opts *bind.CallOpts, eon uint64) ([]byte, error) {
-	args := m.Called(opts, eon)
+	args := m.Called(nil, eon)
 	return args.Get(0).([]byte), args.Error(1)
 }
