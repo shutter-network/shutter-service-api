@@ -75,17 +75,15 @@ func (s *TestShutterService) makeKeys() (*shcrypto.EonPublicKey, *shcrypto.Epoch
 func (s *TestShutterService) TestGetDataForEncryption() {
 	ctx := context.Background()
 	sender, err := generateRandomETHAddress()
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 	identityPrefix, err := generateRandomBytes(32)
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 	identityPrefixStringified := hex.EncodeToString(identityPrefix)
 	blockNumber := rand.Uint64()
 
 	eon := rand.Uint64()
 
 	eonPublicKey, _, _ := s.makeKeys()
-
-	s.Require().Nil(err)
 
 	s.ethClient.
 		On("BlockNumber", ctx).
@@ -111,7 +109,37 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	s.Require().Equal(hex.EncodeToString(identity.Marshal()), data.Identity)
 	s.Require().Equal(hex.EncodeToString(identityPrefix), data.IdentityPrefix)
 	s.Require().Equal(data.EonKey, hex.EncodeToString(eonPublicKey.Marshal()))
+}
 
+func (s *TestShutterService) TestGetDataForEncryptionInvalidSender() {
+	ctx := context.Background()
+	sender := "0xWrongAddy"
+	identityPrefix, err := generateRandomBytes(32)
+	s.Require().NoError(err)
+	identityPrefixStringified := hex.EncodeToString(identityPrefix)
+	blockNumber := rand.Uint64()
+
+	eon := rand.Uint64()
+
+	eonPublicKey, _, _ := s.makeKeys()
+
+	s.ethClient.
+		On("BlockNumber", ctx).
+		Return(blockNumber, nil).
+		Once()
+
+	s.keyperSetManagerContract.
+		On("GetKeyperSetIndexByBlock", nil, blockNumber).
+		Return(eon, nil).
+		Once()
+
+	s.keyBroadcastContract.
+		On("GetEonKey", nil, eon).
+		Return(eonPublicKey.Marshal(), nil).
+		Once()
+
+	_, err = s.cryptoUsecase.GetDataForEncryption(ctx, sender, identityPrefixStringified)
+	s.Require().Error(err)
 }
 
 func generateRandomETHAddress() (string, error) {
