@@ -14,11 +14,14 @@ import (
 
 type TestShutterService struct {
 	suite.Suite
-	testDB                  *common.TestDatabase
-	dbQuery                 *data.Queries
-	cryptoUsecase           *usecase.CryptoUsecase
-	config                  *common.Config
-	shutterRegistryContract *mock.MockShutterregistry
+	testDB                   *common.TestDatabase
+	dbQuery                  *data.Queries
+	cryptoUsecase            *usecase.CryptoUsecase
+	config                   *common.Config
+	shutterRegistryContract  *mock.MockShutterregistry
+	keyperSetManagerContract *mock.MockKeyperSetManager
+	keyBroadcastContract     *mock.MockKeyBroadcast
+	ethClient                *mock.MockEthClient
 }
 
 func TestShutterServiceSuite(t *testing.T) {
@@ -42,6 +45,8 @@ func (s *TestShutterService) SetupSuite() {
 		KeyperHTTPURL: parsedURL,
 	}
 	s.shutterRegistryContract = new(mock.MockShutterregistry)
-
-	s.cryptoUsecase = usecase.NewCryptoUsecase(s.testDB.DbInstance, s.shutterRegistryContract, s.config)
+	s.keyBroadcastContract = new(mock.MockKeyBroadcast)
+	s.keyperSetManagerContract = new(mock.MockKeyperSetManager)
+	s.ethClient = new(mock.MockEthClient)
+	s.cryptoUsecase = usecase.NewCryptoUsecase(s.testDB.DbInstance, s.shutterRegistryContract, s.keyperSetManagerContract, s.keyBroadcastContract, s.ethClient, s.config)
 }

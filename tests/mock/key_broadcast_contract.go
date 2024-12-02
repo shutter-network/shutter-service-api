@@ -5,11 +5,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockKeyperBroadcast struct {
+type MockKeyBroadcast struct {
 	mock.Mock
 }
 
-func (m *MockKeyperBroadcast) GetEonKey(opts *bind.CallOpts, eon uint64) ([]byte, error) {
+func (m *MockKeyBroadcast) GetEonKey(opts *bind.CallOpts, eon uint64) ([]byte, error) {
 	args := m.Called(opts, eon)
 	return args.Get(0).([]byte), args.Error(1)
 }

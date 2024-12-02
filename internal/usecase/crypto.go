@@ -13,7 +13,6 @@ import (
 	cryptorand "crypto/rand"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
@@ -74,7 +73,7 @@ func NewCryptoUsecase(
 	shutterRegistryContract ShutterregistryInterface,
 	keyperSetManagerContract KeyperSetManagerInterface,
 	keyBroadcastContract KeyBroadcastInterface,
-	ethClient *ethclient.Client,
+	ethClient EthClientInterface,
 	config *common.Config,
 ) *CryptoUsecase {
 	return &CryptoUsecase{
