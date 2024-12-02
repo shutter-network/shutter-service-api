@@ -25,6 +25,7 @@ func NewRouter(
 	api := router.Group("/api")
 	{
 		api.GET("/get_decryption_key", cryptoService.GetDecryptionKey)
+		api.GET("/get_data_for_encryption", cryptoService.GetDataForEncryption)
 	}
 	return router
 }
