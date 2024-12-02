@@ -18,8 +18,11 @@ import (
 )
 
 func bigToScalar(i *big.Int) *blst.Scalar {
+	max256Bit := new(big.Int).Lsh(big.NewInt(1), 256)
+	normalized := new(big.Int).Mod(i, max256Bit)
+
 	b := make([]byte, 32)
-	i.FillBytes(b)
+	normalized.FillBytes(b)
 	s := new(blst.Scalar)
 	s.FromBEndian(b)
 	return s

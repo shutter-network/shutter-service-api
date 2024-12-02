@@ -188,11 +188,11 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 	}, nil
 }
 
-func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, sender string, identityPrefixStringified string) (*GetDataForEncryptionResponse, *httpError.Http) {
-	if !ethCommon.IsHexAddress(sender) {
-		log.Warn().Str("sender", sender).Msg("invalid sender address")
+func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address string, identityPrefixStringified string) (*GetDataForEncryptionResponse, *httpError.Http) {
+	if !ethCommon.IsHexAddress(address) {
+		log.Warn().Str("address", address).Msg("invalid address")
 		err := httpError.NewHttpError(
-			"invalid sender address",
+			"invalid address",
 			"",
 			http.StatusBadRequest,
 		)
@@ -280,7 +280,7 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, sender string
 		return nil, &err
 	}
 
-	identity := common.ComputeIdentity(identityPrefix[:], ethCommon.HexToAddress(sender))
+	identity := common.ComputeIdentity(identityPrefix[:], ethCommon.HexToAddress(address))
 
 	return &GetDataForEncryptionResponse{
 		Eon:            eon,
