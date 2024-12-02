@@ -1,9 +1,9 @@
 package router
 
 import (
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	shutterRegistryBindings "github.com/shutter-network/contracts/v2/bindings/shutterregistry"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/middleware"
 	"github.com/shutter-network/shutter-service-api/internal/service"
@@ -11,7 +11,8 @@ import (
 
 func NewRouter(
 	db *pgxpool.Pool,
-	shutterRegistry *shutterRegistryBindings.Shutterregistry,
+	contract *common.Contract,
+	ethClient *ethclient.Client,
 	config *common.Config,
 ) *gin.Engine {
 	router := gin.New()
@@ -20,7 +21,7 @@ func NewRouter(
 
 	router.Use(middleware.ErrorHandler())
 
-	cryptoService := service.NewCryptoService(db, shutterRegistry, config)
+	cryptoService := service.NewCryptoService(db, contract, ethClient, config)
 	api := router.Group("/api")
 	{
 		api.GET("/get_decryption_key", cryptoService.GetDecryptionKey)

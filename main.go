@@ -7,7 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog/log"
-	shutterRegistryBindings "github.com/shutter-network/contracts/v2/bindings/shutterregistry"
 	shutterServiceCommon "github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/common/database"
 	"github.com/shutter-network/shutter-service-api/internal/router"
@@ -31,12 +30,18 @@ func main() {
 		return
 	}
 
-	shutterRegistryContractAddress := os.Getenv("REGISTRY_CONTRACT_ADDRESS")
+	shutterRegistryContractAddressStringified := os.Getenv("SHUTTER_REGISTRY_CONTRACT_ADDRESS")
+	shutterRegistryContractAddress := common.HexToAddress(shutterRegistryContractAddressStringified)
 
-	address := common.HexToAddress(shutterRegistryContractAddress)
-	shutterRegistry, err := shutterRegistryBindings.NewShutterregistry(address, client)
+	keyBroadcastContractAddressStringified := os.Getenv("KEY_BROADCAST_CONTRACT_ADDRESS")
+	keyBroadcastContractAddress := common.HexToAddress(keyBroadcastContractAddressStringified)
+
+	keyperSetManagerContractAddressStringified := os.Getenv("KEYPER_SET_MANAGER_CONTRACT_ADDRESS")
+	keyperSetManagerContractAddress := common.HexToAddress(keyperSetManagerContractAddressStringified)
+
+	contract, err := shutterServiceCommon.NewContract(client, shutterRegistryContractAddress, keyBroadcastContractAddress, keyperSetManagerContractAddress)
 	if err != nil {
-		log.Err(err).Msg("failed to instantiate shutter registry contract")
+		log.Err(err).Msg("failed to instantiate shutter contracts")
 		return
 	}
 
@@ -47,6 +52,6 @@ func main() {
 		log.Err(err).Msg("unable to parse keyper http url")
 		return
 	}
-	app := router.NewRouter(db, shutterRegistry, config)
+	app := router.NewRouter(db, contract, client, config)
 	app.Run("0.0.0.0:" + port)
 }
