@@ -43,6 +43,10 @@ type KeyBroadcastInterface interface {
 	GetEonKey(opts *bind.CallOpts, eon uint64) ([]byte, error)
 }
 
+type EthClientInterface interface {
+	BlockNumber(ctx context.Context) (uint64, error)
+}
+
 type GetDecryptionKeyResponse struct {
 	DecryptionKey       string
 	Identity            string
@@ -61,7 +65,7 @@ type CryptoUsecase struct {
 	shutterRegistryContract  ShutterregistryInterface
 	keyperSetManagerContract KeyperSetManagerInterface
 	keyBroadcastContract     KeyBroadcastInterface
-	ethClient                *ethclient.Client
+	ethClient                EthClientInterface
 	config                   *common.Config
 }
 
