@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog/log"
 	shutterServiceCommon "github.com/shutter-network/shutter-service-api/common"
@@ -47,7 +48,12 @@ func main() {
 
 	keyperHTTPUrl := os.Getenv("KEYPER_HTTP_URL")
 
-	config, err := shutterServiceCommon.NewConfig(keyperHTTPUrl)
+	signingKey, err := crypto.HexToECDSA(os.Getenv("SIGNING_KEY"))
+	if err != nil {
+		log.Err(err).Msg("failed to parse signing key")
+	}
+
+	config, err := shutterServiceCommon.NewConfig(keyperHTTPUrl, signingKey)
 	if err != nil {
 		log.Err(err).Msg("unable to parse keyper http url")
 		return
