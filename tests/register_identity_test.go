@@ -3,15 +3,20 @@ package tests
 import (
 	"context"
 	"encoding/hex"
+	"math/big"
 	"math/rand"
+	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/shutter-network/shutter-service-api/common"
+	"github.com/stretchr/testify/mock"
 )
 
 func (s *TestShutterService) TestRegisterIdentity() {
 	ctx := context.Background()
-	decryptionTimestamp := 1732885990
+	decryptionTimestamp := time.Now().Add(1 * time.Hour).Unix()
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 	identityPrefixStringified := hex.EncodeToString(identityPrefix)
@@ -20,6 +25,11 @@ func (s *TestShutterService) TestRegisterIdentity() {
 	eon := rand.Uint64()
 
 	eonPublicKey, _, _ := s.makeKeys()
+
+	newSigner, err := bind.NewKeyedTransactorWithChainID(s.config.SigningKey, big.NewInt(GnosisMainnetChainID))
+	s.Require().NoError(err)
+
+	randomTx := generateRandomTransaction()
 
 	s.ethClient.
 		On("BlockNumber", ctx).
@@ -36,13 +46,50 @@ func (s *TestShutterService) TestRegisterIdentity() {
 		Return(eonPublicKey.Marshal(), nil).
 		Once()
 
+	s.ethClient.
+		On("ChainID", ctx).
+		Return(big.NewInt(GnosisMainnetChainID), nil).
+		Once()
+
+	s.shutterRegistryContract.
+		On("Register", mock.Anything, eon, [32]byte(identityPrefix), uint64(decryptionTimestamp)).
+		Return(randomTx, nil).
+		Once()
+
 	data, err := s.cryptoUsecase.RegisterIdentity(ctx, uint64(decryptionTimestamp), identityPrefixStringified)
 	s.Require().Nil(err)
 
-	identity := common.ComputeIdentity(identityPrefix, ethCommon.HexToAddress(sender))
+	identity := common.ComputeIdentity(identityPrefix[:], newSigner.From)
 
 	s.Require().Equal(data.Eon, eon)
 	s.Require().Equal(hex.EncodeToString(identity.Marshal()), data.Identity)
 	s.Require().Equal(hex.EncodeToString(identityPrefix), data.IdentityPrefix)
 	s.Require().Equal(data.EonKey, hex.EncodeToString(eonPublicKey.Marshal()))
+	s.Require().Equal(randomTx.Hash().Hex(), data.TxHash)
+}
+
+func generateRandomTransaction() *types.Transaction {
+	// Random nonce
+	nonce := rand.Uint64()
+
+	randomBigInt := big.NewInt(rand.Int63())
+	// Random to address
+	to := ethCommon.BigToAddress(randomBigInt)
+
+	// Random value
+	value := randomBigInt
+
+	// Random gas price and gas limit
+	gasPrice := big.NewInt(1e9) // 1 GWei
+	gasLimit := uint64(21000)   // Standard gas limit for a simple transfer
+
+	// Random data
+	data, _ := generateRandomBytes(20)
+	// Create a transaction
+	tx := types.NewTransaction(nonce, to, value, gasLimit, gasPrice, data)
+
+	// Optionally, you could sign the transaction here if needed:
+	// tx = types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+
+	return tx
 }

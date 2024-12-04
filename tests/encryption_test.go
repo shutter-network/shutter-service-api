@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"math/big"
 	"math/rand"
@@ -10,7 +9,6 @@ import (
 	cryptorand "crypto/rand"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter/shlib/shcrypto"
 	blst "github.com/supranational/blst/bindings/go"
@@ -77,7 +75,7 @@ func (s *TestShutterService) makeKeys() (*shcrypto.EonPublicKey, *shcrypto.Epoch
 
 func (s *TestShutterService) TestGetDataForEncryption() {
 	ctx := context.Background()
-	sender, err := generateRandomETHAddress()
+	_, _, sender, err := generateRandomETHAccount()
 	s.Require().NoError(err)
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
@@ -143,20 +141,4 @@ func (s *TestShutterService) TestGetDataForEncryptionInvalidSender() {
 
 	_, err = s.cryptoUsecase.GetDataForEncryption(ctx, sender, identityPrefixStringified)
 	s.Require().Error(err)
-}
-
-func generateRandomETHAddress() (string, error) {
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-		return "", err
-	}
-
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return "", err
-	}
-	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-
-	return address, nil
 }

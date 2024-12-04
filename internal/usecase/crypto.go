@@ -63,7 +63,14 @@ type GetDataForEncryptionResponse struct {
 	Identity       string
 	IdentityPrefix string
 	EonKey         string
-	txHash         string
+}
+
+type RegisterIdentityResponse struct {
+	Eon            uint64
+	Identity       string
+	IdentityPrefix string
+	EonKey         string
+	TxHash         string
 }
 
 type CryptoUsecase struct {
@@ -299,7 +306,7 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address strin
 	}, nil
 }
 
-func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimestamp uint64, identityPrefixStringified string) (*GetDataForEncryptionResponse, *httpError.Http) {
+func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimestamp uint64, identityPrefixStringified string) (*RegisterIdentityResponse, *httpError.Http) {
 	currentTimestamp := time.Now().Unix()
 	if currentTimestamp > int64(decryptionTimestamp) {
 		log.Debug().Uint64("decryptionTimestamp", decryptionTimestamp).Int64("currentTimestamp", currentTimestamp).Msg("decryption timestamp should be in future")
@@ -437,12 +444,12 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 	// we return the transaction hash in response to allow
 	// users the ability to monitor it themselves
 
-	return &GetDataForEncryptionResponse{
+	return &RegisterIdentityResponse{
 		Eon:            eon,
 		Identity:       hex.EncodeToString(identity.Marshal()),
 		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
 		EonKey:         hex.EncodeToString(eonKeyBytes),
-		txHash:         tx.Hash().Hex(),
+		TxHash:         tx.Hash().Hex(),
 	}, nil
 }
 
