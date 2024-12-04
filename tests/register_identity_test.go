@@ -69,27 +69,16 @@ func (s *TestShutterService) TestRegisterIdentity() {
 }
 
 func generateRandomTransaction() *types.Transaction {
-	// Random nonce
 	nonce := rand.Uint64()
-
 	randomBigInt := big.NewInt(rand.Int63())
-	// Random to address
 	to := ethCommon.BigToAddress(randomBigInt)
-
-	// Random value
 	value := randomBigInt
-
-	// Random gas price and gas limit
-	gasPrice := big.NewInt(1e9) // 1 GWei
-	gasLimit := uint64(21000)   // Standard gas limit for a simple transfer
+	gasPrice := big.NewInt(1e9)
+	gasLimit := uint64(21000)
 
 	// Random data
 	data, _ := generateRandomBytes(20)
 	// Create a transaction
 	tx := types.NewTransaction(nonce, to, value, gasLimit, gasPrice, data)
-
-	// Optionally, you could sign the transaction here if needed:
-	// tx = types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
-
 	return tx
 }
