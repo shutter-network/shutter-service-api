@@ -320,20 +320,21 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 	var identityPrefix shcrypto.Block
 
 	if len(identityPrefixStringified) > 0 {
-		identityPrefixBytes, err := hex.DecodeString(strings.TrimPrefix(identityPrefixStringified, "0x"))
-		if err != nil {
-			log.Err(err).Msg("err encountered while decoding identity prefix")
+		trimmedIdentityPrefix := strings.TrimPrefix(identityPrefixStringified, "0x")
+		if len(trimmedIdentityPrefix) != 2*IdentityPrefixLength {
+			log.Warn().Msg("identity prefix should be of length 32")
 			err := httpError.NewHttpError(
-				"error encountered while decoding identity prefix",
+				"identity prefix should be of length 32",
 				"",
 				http.StatusBadRequest,
 			)
 			return nil, &err
 		}
-		if len(identityPrefixBytes) != 32 {
-			log.Err(err).Msg("identity prefix should be of length 32")
+		identityPrefixBytes, err := hex.DecodeString(trimmedIdentityPrefix)
+		if err != nil {
+			log.Err(err).Msg("err encountered while decoding identity prefix")
 			err := httpError.NewHttpError(
-				"identity prefix should be of length 32",
+				"error encountered while decoding identity prefix",
 				"",
 				http.StatusBadRequest,
 			)
