@@ -287,7 +287,7 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address strin
 
 	return &GetDataForEncryptionResponse{
 		Eon:            eon,
-		Identity:       hex.EncodeToString(identity.Marshal()),
+		Identity:       hex.EncodeToString(identity),
 		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
 		EonKey:         hex.EncodeToString(eonKeyBytes),
 	}, nil
