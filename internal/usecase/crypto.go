@@ -321,10 +321,10 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 
 	if len(identityPrefixStringified) > 0 {
 		trimmedIdentityPrefix := strings.TrimPrefix(identityPrefixStringified, "0x")
-		if len(trimmedIdentityPrefix) != 2*IdentityPrefixLength {
-			log.Warn().Msg("identity prefix should be of length 32")
+		if len(trimmedIdentityPrefix) != 2*IdentityPrefixByteLength {
+			log.Warn().Msg("identity prefix should be of byte length 32")
 			err := httpError.NewHttpError(
-				"identity prefix should be of length 32",
+				"identity prefix should be of byte length 32",
 				"",
 				http.StatusBadRequest,
 			)
