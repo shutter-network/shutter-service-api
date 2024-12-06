@@ -6,10 +6,16 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog/log"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/error"
 	"github.com/shutter-network/shutter-service-api/internal/usecase"
 )
+
+type RegisterIdentityRequest struct {
+	DecryptionTimestamp uint64 `json:"decryptionTimestamp"`
+	IdentityPrefix      string `json:"identityPrefix"`
+}
 
 type CryptoService struct {
 	CryptoUsecase *usecase.CryptoUsecase
@@ -66,6 +72,29 @@ func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
 	}
 
 	data, httpErr := svc.CryptoUsecase.GetDataForEncryption(ctx, address, identityPrefix)
+	if httpErr != nil {
+		ctx.Error(httpErr)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": data,
+	})
+}
+
+func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
+	var req RegisterIdentityRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Err(err).Msg("err decoding request body")
+		err := error.NewHttpError(
+			"unable to decode request body",
+			"",
+			http.StatusBadRequest,
+		)
+		ctx.Error(err)
+		return
+	}
+
+	data, httpErr := svc.CryptoUsecase.RegisterIdentity(ctx, req.DecryptionTimestamp, req.IdentityPrefix)
 	if httpErr != nil {
 		ctx.Error(httpErr)
 		return

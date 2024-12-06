@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"strings"
 	"time"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
@@ -33,6 +36,7 @@ type ShutterregistryInterface interface {
 		},
 		error,
 	)
+	Register(opts *bind.TransactOpts, eon uint64, identityPrefix [32]byte, timestamp uint64) (*types.Transaction, error)
 }
 
 type KeyperSetManagerInterface interface {
@@ -45,6 +49,7 @@ type KeyBroadcastInterface interface {
 
 type EthClientInterface interface {
 	BlockNumber(ctx context.Context) (uint64, error)
+	ChainID(ctx context.Context) (*big.Int, error)
 }
 
 type GetDecryptionKeyResponse struct {
@@ -58,6 +63,14 @@ type GetDataForEncryptionResponse struct {
 	Identity       string
 	IdentityPrefix string
 	EonKey         string
+}
+
+type RegisterIdentityResponse struct {
+	Eon            uint64
+	Identity       string
+	IdentityPrefix string
+	EonKey         string
+	TxHash         string
 }
 
 type CryptoUsecase struct {
@@ -134,7 +147,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 
 	currentTimestamp := time.Now().Unix()
 	if currentTimestamp < int64(registrationData.Timestamp) {
-		log.Err(err).Uint64("decryptionTimestamp", registrationData.Timestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
+		log.Debug().Uint64("decryptionTimestamp", registrationData.Timestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
 		err := httpError.NewHttpError(
 			"timestamp not reached yet, decryption key requested too early",
 			"",
@@ -290,6 +303,154 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address strin
 		Identity:       hex.EncodeToString(identity),
 		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
 		EonKey:         hex.EncodeToString(eonKeyBytes),
+	}, nil
+}
+
+func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimestamp uint64, identityPrefixStringified string) (*RegisterIdentityResponse, *httpError.Http) {
+	currentTimestamp := time.Now().Unix()
+	if currentTimestamp > int64(decryptionTimestamp) {
+		log.Debug().Uint64("decryptionTimestamp", decryptionTimestamp).Int64("currentTimestamp", currentTimestamp).Msg("decryption timestamp should be in future")
+		err := httpError.NewHttpError(
+			"decryption timestamp should be in future",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+	var identityPrefix shcrypto.Block
+
+	if len(identityPrefixStringified) > 0 {
+		trimmedIdentityPrefix := strings.TrimPrefix(identityPrefixStringified, "0x")
+		if len(trimmedIdentityPrefix) != 2*IdentityPrefixByteLength {
+			log.Warn().Msg("identity prefix should be of byte length 32")
+			err := httpError.NewHttpError(
+				"identity prefix should be of byte length 32",
+				"",
+				http.StatusBadRequest,
+			)
+			return nil, &err
+		}
+		identityPrefixBytes, err := hex.DecodeString(trimmedIdentityPrefix)
+		if err != nil {
+			log.Err(err).Msg("err encountered while decoding identity prefix")
+			err := httpError.NewHttpError(
+				"error encountered while decoding identity prefix",
+				"",
+				http.StatusBadRequest,
+			)
+			return nil, &err
+		}
+		identityPrefix = shcrypto.Block(identityPrefixBytes)
+	} else {
+		// generate a random one
+		block, err := shcrypto.RandomSigma(cryptorand.Reader)
+		if err != nil {
+			log.Err(err).Msg("err encountered while generating identity prefix")
+			err := httpError.NewHttpError(
+				"error encountered while generating identity prefix",
+				"",
+				http.StatusInternalServerError,
+			)
+			return nil, &err
+		}
+		identityPrefix = block
+	}
+
+	blockNumber, err := uc.ethClient.BlockNumber(ctx)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying for recent block")
+		err := httpError.NewHttpError(
+			"error encountered while querying for recent block",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	eon, err := uc.keyperSetManagerContract.GetKeyperSetIndexByBlock(nil, blockNumber)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying keyper set index")
+		err := httpError.NewHttpError(
+			"error encountered while querying for keyper set index",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	eonKeyBytes, err := uc.keyBroadcastContract.GetEonKey(nil, eon)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying for eon key")
+		err := httpError.NewHttpError(
+			"error encountered while querying for eon key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	eonKey := &shcrypto.EonPublicKey{}
+	if err := eonKey.Unmarshal(eonKeyBytes); err != nil {
+		log.Err(err).Msg("err encountered while deserializing eon key")
+		err := httpError.NewHttpError(
+			"error encountered while querying deserializing eon key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	chainId, err := uc.ethClient.ChainID(ctx)
+	if err != nil {
+		log.Err(err).Msg("err encountered while quering chain id")
+		err := httpError.NewHttpError(
+			"error encountered while querying chain id",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	newSigner, err := bind.NewKeyedTransactorWithChainID(uc.config.SigningKey, chainId)
+	if err != nil {
+		log.Err(err).Msg("err encountered while creating signer")
+		err := httpError.NewHttpError(
+			"error encountered while registering identity",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	identity := common.ComputeIdentity(identityPrefix[:], newSigner.From)
+
+	publicAddress := crypto.PubkeyToAddress(*uc.config.PublicKey)
+
+	opts := bind.TransactOpts{
+		From:   publicAddress,
+		Signer: newSigner.Signer,
+	}
+
+	tx, err := uc.shutterRegistryContract.Register(&opts, eon, identityPrefix, decryptionTimestamp)
+	if err != nil {
+		log.Err(err).Msg("failed to send transaction")
+		err := httpError.NewHttpError(
+			"failed to register identity",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+	// not launching a routine to monitor the transaction
+	// we return the transaction hash in response to allow
+	// users the ability to monitor it themselves
+
+	return &RegisterIdentityResponse{
+		Eon:            eon,
+		Identity:       hex.EncodeToString(identity),
+		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
+		EonKey:         hex.EncodeToString(eonKeyBytes),
+		TxHash:         tx.Hash().Hex(),
 	}, nil
 }
 
