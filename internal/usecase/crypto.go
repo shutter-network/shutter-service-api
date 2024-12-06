@@ -220,7 +220,7 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address strin
 		if len(trimmedIdentityPrefix) != 2*IdentityPrefixByteLength {
 			log.Warn().Msg("identity prefix should be of byte length 32")
 			err := httpError.NewHttpError(
-				"identity prefix should be of length 32",
+				"identity prefix should be of byte length 32",
 				"",
 				http.StatusBadRequest,
 			)
