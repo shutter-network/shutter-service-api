@@ -9,7 +9,10 @@ import (
 	"strings"
 	"time"
 
+	cryptorand "crypto/rand"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
@@ -17,7 +20,10 @@ import (
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/data"
 	httpError "github.com/shutter-network/shutter-service-api/internal/error"
+	"github.com/shutter-network/shutter/shlib/shcrypto"
 )
+
+const IdentityPrefixByteLength = 32
 
 type ShutterregistryInterface interface {
 	Registrations(opts *bind.CallOpts, identity [32]byte) (
@@ -29,29 +35,57 @@ type ShutterregistryInterface interface {
 	)
 }
 
+type KeyperSetManagerInterface interface {
+	GetKeyperSetIndexByBlock(opts *bind.CallOpts, blockNumber uint64) (uint64, error)
+}
+
+type KeyBroadcastInterface interface {
+	GetEonKey(opts *bind.CallOpts, eon uint64) ([]byte, error)
+}
+
+type EthClientInterface interface {
+	BlockNumber(ctx context.Context) (uint64, error)
+}
+
 type GetDecryptionKeyResponse struct {
 	DecryptionKey       string
 	Identity            string
 	DecryptionTimestamp uint64
 }
 
+type GetDataForEncryptionResponse struct {
+	Eon            uint64
+	Identity       string
+	IdentityPrefix string
+	EonKey         string
+}
+
 type CryptoUsecase struct {
-	db                      *pgxpool.Pool
-	dbQuery                 *data.Queries
-	shutterRegistryContract ShutterregistryInterface
-	config                  *common.Config
+	db                       *pgxpool.Pool
+	dbQuery                  *data.Queries
+	shutterRegistryContract  ShutterregistryInterface
+	keyperSetManagerContract KeyperSetManagerInterface
+	keyBroadcastContract     KeyBroadcastInterface
+	ethClient                EthClientInterface
+	config                   *common.Config
 }
 
 func NewCryptoUsecase(
 	db *pgxpool.Pool,
 	shutterRegistryContract ShutterregistryInterface,
+	keyperSetManagerContract KeyperSetManagerInterface,
+	keyBroadcastContract KeyBroadcastInterface,
+	ethClient EthClientInterface,
 	config *common.Config,
 ) *CryptoUsecase {
 	return &CryptoUsecase{
-		db:                      db,
-		dbQuery:                 data.New(db),
-		shutterRegistryContract: shutterRegistryContract,
-		config:                  config,
+		db:                       db,
+		dbQuery:                  data.New(db),
+		shutterRegistryContract:  shutterRegistryContract,
+		keyperSetManagerContract: keyperSetManagerContract,
+		keyBroadcastContract:     keyBroadcastContract,
+		ethClient:                ethClient,
+		config:                   config,
 	}
 }
 
@@ -153,6 +187,109 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 		DecryptionKey:       decryptionKey,
 		Identity:            identity,
 		DecryptionTimestamp: registrationData.Timestamp,
+	}, nil
+}
+
+func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address string, identityPrefixStringified string) (*GetDataForEncryptionResponse, *httpError.Http) {
+	if !ethCommon.IsHexAddress(address) {
+		log.Warn().Str("address", address).Msg("invalid address")
+		err := httpError.NewHttpError(
+			"invalid address",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+	var identityPrefix shcrypto.Block
+
+	if len(identityPrefixStringified) > 0 {
+		trimmedIdentityPrefix := strings.TrimPrefix(identityPrefixStringified, "0x")
+		if len(trimmedIdentityPrefix) != 2*IdentityPrefixByteLength {
+			log.Warn().Msg("identity prefix should be of byte length 32")
+			err := httpError.NewHttpError(
+				"identity prefix should be of byte length 32",
+				"",
+				http.StatusBadRequest,
+			)
+			return nil, &err
+		}
+		identityPrefixBytes, err := hex.DecodeString(trimmedIdentityPrefix)
+		if err != nil {
+			log.Err(err).Msg("err encountered while decoding identity prefix")
+			err := httpError.NewHttpError(
+				"error encountered while decoding identity prefix",
+				"",
+				http.StatusBadRequest,
+			)
+			return nil, &err
+		}
+		identityPrefix = shcrypto.Block(identityPrefixBytes)
+	} else {
+		// generate a random one
+		block, err := shcrypto.RandomSigma(cryptorand.Reader)
+		if err != nil {
+			log.Err(err).Msg("err encountered while generating identity prefix")
+			err := httpError.NewHttpError(
+				"error encountered while generating identity prefix",
+				"",
+				http.StatusInternalServerError,
+			)
+			return nil, &err
+		}
+		identityPrefix = block
+	}
+
+	blockNumber, err := uc.ethClient.BlockNumber(ctx)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying for recent block")
+		err := httpError.NewHttpError(
+			"error encountered while querying for recent block",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	eon, err := uc.keyperSetManagerContract.GetKeyperSetIndexByBlock(nil, blockNumber)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying keyper set index")
+		err := httpError.NewHttpError(
+			"error encountered while querying for keyper set index",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	eonKeyBytes, err := uc.keyBroadcastContract.GetEonKey(nil, eon)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying for eon key")
+		err := httpError.NewHttpError(
+			"error encountered while querying for eon key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	eonKey := &shcrypto.EonPublicKey{}
+	if err := eonKey.Unmarshal(eonKeyBytes); err != nil {
+		log.Err(err).Msg("err encountered while deserializing eon key")
+		err := httpError.NewHttpError(
+			"error encountered while querying deserializing eon key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	identity := common.ComputeIdentity(identityPrefix[:], ethCommon.HexToAddress(address))
+
+	return &GetDataForEncryptionResponse{
+		Eon:            eon,
+		Identity:       hex.EncodeToString(identity),
+		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
+		EonKey:         hex.EncodeToString(eonKeyBytes),
 	}, nil
 }
 

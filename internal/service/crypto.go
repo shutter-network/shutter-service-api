@@ -3,9 +3,9 @@ package service
 import (
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/shutter-network/contracts/v2/bindings/shutterregistry"
 	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/internal/error"
 	"github.com/shutter-network/shutter-service-api/internal/usecase"
@@ -17,11 +17,12 @@ type CryptoService struct {
 
 func NewCryptoService(
 	db *pgxpool.Pool,
-	shutterRegistryContract *shutterregistry.Shutterregistry,
+	contract *common.Contract,
+	ethClient *ethclient.Client,
 	config *common.Config,
 ) *CryptoService {
 	return &CryptoService{
-		CryptoUsecase: usecase.NewCryptoUsecase(db, shutterRegistryContract, config),
+		CryptoUsecase: usecase.NewCryptoUsecase(db, contract.ShutterRegistryContract, contract.KeyperSetManagerContract, contract.KeyBroadcastContract, ethClient, config),
 	}
 }
 
@@ -40,6 +41,33 @@ func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 	data, err := svc.CryptoUsecase.GetDecryptionKey(ctx, identity)
 	if err != nil {
 		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": data,
+	})
+}
+
+func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
+	address, ok := ctx.GetQuery("address")
+	if !ok {
+		err := error.NewHttpError(
+			"query parameter not found",
+			"address query parameter is required",
+			http.StatusBadRequest,
+		)
+		ctx.Error(err)
+		return
+	}
+
+	identityPrefix, ok := ctx.GetQuery("identityPrefix")
+	if !ok {
+		identityPrefix = ""
+	}
+
+	data, httpErr := svc.CryptoUsecase.GetDataForEncryption(ctx, address, identityPrefix)
+	if httpErr != nil {
+		ctx.Error(httpErr)
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
