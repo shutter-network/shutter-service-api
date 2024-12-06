@@ -23,7 +23,7 @@ import (
 	"github.com/shutter-network/shutter/shlib/shcrypto"
 )
 
-const IdentityPrefixLength = 32
+const IdentityPrefixByteLength = 32
 
 type ShutterregistryInterface interface {
 	Registrations(opts *bind.CallOpts, identity [32]byte) (
@@ -204,8 +204,8 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address strin
 
 	if len(identityPrefixStringified) > 0 {
 		trimmedIdentityPrefix := strings.TrimPrefix(identityPrefixStringified, "0x")
-		if len(trimmedIdentityPrefix) != 2*IdentityPrefixLength {
-			log.Warn().Msg("identity prefix should be of length 32")
+		if len(trimmedIdentityPrefix) != 2*IdentityPrefixByteLength {
+			log.Warn().Msg("identity prefix should be of byte length 32")
 			err := httpError.NewHttpError(
 				"identity prefix should be of length 32",
 				"",
