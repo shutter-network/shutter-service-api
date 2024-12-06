@@ -62,7 +62,7 @@ func (s *TestShutterService) TestRegisterIdentity() {
 	identity := common.ComputeIdentity(identityPrefix[:], newSigner.From)
 
 	s.Require().Equal(data.Eon, eon)
-	s.Require().Equal(hex.EncodeToString(identity.Marshal()), data.Identity)
+	s.Require().Equal(hex.EncodeToString(identity), data.Identity)
 	s.Require().Equal(hex.EncodeToString(identityPrefix), data.IdentityPrefix)
 	s.Require().Equal(data.EonKey, hex.EncodeToString(eonPublicKey.Marshal()))
 	s.Require().Equal(randomTx.Hash().Hex(), data.TxHash)

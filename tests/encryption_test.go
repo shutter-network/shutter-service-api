@@ -107,7 +107,7 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	identity := common.ComputeIdentity(identityPrefix, ethCommon.HexToAddress(sender))
 
 	s.Require().Equal(data.Eon, eon)
-	s.Require().Equal(hex.EncodeToString(identity.Marshal()), data.Identity)
+	s.Require().Equal(hex.EncodeToString(identity), data.Identity)
 	s.Require().Equal(hex.EncodeToString(identityPrefix), data.IdentityPrefix)
 	s.Require().Equal(data.EonKey, hex.EncodeToString(eonPublicKey.Marshal()))
 }
