@@ -9,3 +9,16 @@ type DecryptionKey struct {
 	EpochID       []byte
 	DecryptionKey []byte
 }
+
+type IdentityRegisteredEvent struct {
+	BlockNumber    int64
+	BlockHash      []byte
+	TxIndex        int64
+	LogIndex       int64
+	Eon            int64
+	IdentityPrefix []byte
+	Sender         string
+	Timestamp      int64
+	Decrypted      bool
+	Identity       []byte
+}

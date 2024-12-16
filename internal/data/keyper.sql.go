@@ -11,19 +11,17 @@ import (
 
 const getDecryptionKey = `-- name: GetDecryptionKey :one
 
-SELECT eon, epoch_id, decryption_key FROM decryption_key
-WHERE eon = $1 AND epoch_id = $2
+SELECT dk.decryption_key
+FROM decryption_key dk
+INNER JOIN identity_registered_event ire
+ON ire.eon = dk.eon AND ire.identity = dk.epoch_id
+WHERE ire.identity = $1 AND ire.decrypted = TRUE
 `
 
-type GetDecryptionKeyParams struct {
-	Eon     int64
-	EpochID []byte
-}
-
 // write sql queries here
-func (q *Queries) GetDecryptionKey(ctx context.Context, arg GetDecryptionKeyParams) (DecryptionKey, error) {
-	row := q.db.QueryRow(ctx, getDecryptionKey, arg.Eon, arg.EpochID)
-	var i DecryptionKey
-	err := row.Scan(&i.Eon, &i.EpochID, &i.DecryptionKey)
-	return i, err
+func (q *Queries) GetDecryptionKey(ctx context.Context, identity []byte) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getDecryptionKey, identity)
+	var decryption_key []byte
+	err := row.Scan(&decryption_key)
+	return decryption_key, err
 }
