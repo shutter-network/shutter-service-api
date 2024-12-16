@@ -27,6 +27,7 @@ import (
 )
 
 const IdentityPrefixByteLength = 32
+const IdentityByteLength = 32
 
 type ShutterregistryInterface interface {
 	Registrations(opts *bind.CallOpts, identity [32]byte) (
@@ -454,7 +455,88 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 	}, nil
 }
 
-func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, decryptionTimestamp uint64, identityPrefixStringified string) (*RegisterIdentityResponse, *httpError.Http) {
+func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitment string, identity string) ([]byte, *httpError.Http) {
+	encryptedCommitmentBytes, err := hex.DecodeString(encryptedCommitment)
+	if err != nil {
+		log.Err(err).Msg("err encountered while decoding encrypted commitment")
+		err := httpError.NewHttpError(
+			"error encountered while decoding encrypted commitment",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+
+	var identityBytes []byte
+	if len(identity) > 0 {
+		trimmedIdentity := strings.TrimPrefix(identity, "0x")
+		if len(trimmedIdentity) != 2*IdentityByteLength {
+			log.Warn().Msg("identity should be of byte length 32")
+			err := httpError.NewHttpError(
+				"identity should be of byte length 32",
+				"",
+				http.StatusBadRequest,
+			)
+			return nil, &err
+		}
+		identityBytes, err = hex.DecodeString(trimmedIdentity)
+		if err != nil {
+			log.Err(err).Msg("err encountered while decoding identity")
+			err := httpError.NewHttpError(
+				"error encountered while decoding identity",
+				"",
+				http.StatusBadRequest,
+			)
+			return nil, &err
+		}
+	}
+
+	key, err := uc.dbQuery.GetDecryptionKeyForIdentity(ctx, identityBytes)
+	if err != nil {
+		log.Err(err).Msg("err encountered while querying decryption key from the db")
+		err := httpError.NewHttpError(
+			"error while querying decryption key from the db",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	decryptionKey := new(shcrypto.EpochSecretKey)
+	err = decryptionKey.Unmarshal(key)
+	if err != nil {
+		log.Err(err).Msg("err while decoding decryption key")
+		err := httpError.NewHttpError(
+			"error while decoding decryption key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	encryptedMsg := new(shcrypto.EncryptedMessage)
+	err = encryptedMsg.Unmarshal(encryptedCommitmentBytes)
+	if err != nil {
+		log.Err(err).Msg("err while decoding encrypted commitment")
+		err := httpError.NewHttpError(
+			"error while decoding encrypted commitment",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+
+	decryptedMsg, err := encryptedMsg.Decrypt(decryptionKey)
+	if err != nil {
+		log.Err(err).Msg("err while decrypting message")
+		err := httpError.NewHttpError(
+			"error encountered while decrypting message",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+	return decryptedMsg, nil
 }
 
 func (uc *CryptoUsecase) getDecryptionKeyFromExternalKeyper(ctx context.Context, eon int64, identity string) (string, error) {
