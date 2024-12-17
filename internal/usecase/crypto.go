@@ -478,7 +478,7 @@ func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitm
 		err := httpError.NewHttpError(
 			"error encountered while decoding decryption key",
 			"",
-			http.StatusBadRequest,
+			http.StatusInternalServerError,
 		)
 		return nil, &err
 	}
