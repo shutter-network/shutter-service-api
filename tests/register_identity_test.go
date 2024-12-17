@@ -24,10 +24,11 @@ func (s *TestShutterService) TestRegisterIdentity() {
 
 	eon := rand.Uint64()
 
-	eonPublicKey, _, _ := s.makeKeys()
-
 	newSigner, err := bind.NewKeyedTransactorWithChainID(s.config.SigningKey, big.NewInt(GnosisMainnetChainID))
 	s.Require().NoError(err)
+	identity := common.ComputeIdentity(identityPrefix[:], newSigner.From)
+
+	eonPublicKey, _, _ := s.makeKeys(identity)
 
 	randomTx := generateRandomTransaction()
 
@@ -58,8 +59,6 @@ func (s *TestShutterService) TestRegisterIdentity() {
 
 	data, err := s.cryptoUsecase.RegisterIdentity(ctx, uint64(decryptionTimestamp), identityPrefixStringified)
 	s.Require().Nil(err)
-
-	identity := common.ComputeIdentity(identityPrefix[:], newSigner.From)
 
 	s.Require().Equal(data.Eon, eon)
 	s.Require().Equal(hex.EncodeToString(identity), data.Identity)
