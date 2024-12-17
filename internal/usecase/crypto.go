@@ -456,6 +456,15 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 }
 
 func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitment string, identity string) ([]byte, *httpError.Http) {
+	if len(encryptedCommitment) == 0 {
+		log.Debug().Msg("empty encrypted commitment")
+		err := httpError.NewHttpError(
+			"empty encrypted commitment",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
 	encryptedCommitmentBytes, err := hex.DecodeString(encryptedCommitment)
 	if err != nil {
 		log.Err(err).Msg("err encountered while decoding encrypted commitment")
