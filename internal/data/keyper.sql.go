@@ -27,18 +27,3 @@ func (q *Queries) GetDecryptionKey(ctx context.Context, arg GetDecryptionKeyPara
 	err := row.Scan(&i.Eon, &i.EpochID, &i.DecryptionKey)
 	return i, err
 }
-
-const getDecryptionKeyForIdentity = `-- name: GetDecryptionKeyForIdentity :one
-SELECT dk.decryption_key
-FROM decryption_key dk
-INNER JOIN identity_registered_event ire
-ON ire.eon = dk.eon AND ire.identity = dk.epoch_id
-WHERE ire.identity = $1 AND ire.decrypted = TRUE
-`
-
-func (q *Queries) GetDecryptionKeyForIdentity(ctx context.Context, identity []byte) ([]byte, error) {
-	row := q.db.QueryRow(ctx, getDecryptionKeyForIdentity, identity)
-	var decryption_key []byte
-	err := row.Scan(&decryption_key)
-	return decryption_key, err
-}
