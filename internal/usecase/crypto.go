@@ -494,6 +494,14 @@ func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitm
 	key, err := uc.dbQuery.GetDecryptionKeyForIdentity(ctx, identityBytes)
 	if err != nil {
 		log.Err(err).Msg("err encountered while querying decryption key from the db")
+		if err == pgx.ErrNoRows {
+			err := httpError.NewHttpError(
+				"unable to find decryption key",
+				"",
+				http.StatusNotFound,
+			)
+			return nil, &err
+		}
 		err := httpError.NewHttpError(
 			"error while querying decryption key from the db",
 			"",
