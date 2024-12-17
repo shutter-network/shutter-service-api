@@ -50,7 +50,7 @@ func (s *TestShutterService) TestGetDecryptionKey() {
 	data, err := s.cryptoUsecase.GetDecryptionKey(ctx, identityStringified)
 	s.Require().Nil(err)
 
-	s.Require().Equal(data.DecryptionKey, "0x"+hex.EncodeToString(decryptionKey))
+	s.Require().Equal(data.DecryptionKey, hex.EncodeToString(decryptionKey))
 	s.Require().Equal(int(data.DecryptionTimestamp), timestamp)
 	s.Require().Equal(data.Identity, hex.EncodeToString(identity))
 }
