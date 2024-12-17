@@ -27,7 +27,6 @@ import (
 )
 
 const IdentityPrefixByteLength = 32
-const IdentityByteLength = 32
 
 type ShutterregistryInterface interface {
 	Registrations(opts *bind.CallOpts, identity [32]byte) (
