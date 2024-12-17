@@ -147,6 +147,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 	}
 
 	currentTimestamp := time.Now().Unix()
+
 	if currentTimestamp < int64(registrationData.Timestamp) {
 		log.Debug().Uint64("decryptionTimestamp", registrationData.Timestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
 		err := httpError.NewHttpError(
@@ -194,7 +195,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 			return nil, &err
 		}
 	} else {
-		decryptionKey = "0x" + hex.EncodeToString(decKey.DecryptionKey)
+		decryptionKey = hex.EncodeToString(decKey.DecryptionKey)
 	}
 
 	return &GetDecryptionKeyResponse{
@@ -467,45 +468,18 @@ func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitm
 		return nil, &err
 	}
 
-	var identityBytes []byte
-	if len(identity) > 0 {
-		trimmedIdentity := strings.TrimPrefix(identity, "0x")
-		if len(trimmedIdentity) != 2*IdentityByteLength {
-			log.Warn().Msg("identity should be of byte length 32")
-			err := httpError.NewHttpError(
-				"identity should be of byte length 32",
-				"",
-				http.StatusBadRequest,
-			)
-			return nil, &err
-		}
-		identityBytes, err = hex.DecodeString(trimmedIdentity)
-		if err != nil {
-			log.Err(err).Msg("err encountered while decoding identity")
-			err := httpError.NewHttpError(
-				"error encountered while decoding identity",
-				"",
-				http.StatusBadRequest,
-			)
-			return nil, &err
-		}
+	decKeyResponse, httpErr := uc.GetDecryptionKey(ctx, identity)
+	if httpErr != nil {
+		return nil, httpErr
 	}
 
-	key, err := uc.dbQuery.GetDecryptionKeyForIdentity(ctx, identityBytes)
+	key, err := hex.DecodeString(decKeyResponse.DecryptionKey)
 	if err != nil {
-		log.Err(err).Msg("err encountered while querying decryption key from the db")
-		if err == pgx.ErrNoRows {
-			err := httpError.NewHttpError(
-				"unable to find decryption key",
-				"",
-				http.StatusNotFound,
-			)
-			return nil, &err
-		}
+		log.Err(err).Msg("err encountered while decoding decryption key")
 		err := httpError.NewHttpError(
-			"error while querying decryption key from the db",
+			"error encountered while decoding decryption key",
 			"",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 		)
 		return nil, &err
 	}
