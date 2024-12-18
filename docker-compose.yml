@@ -20,7 +20,7 @@ services:
       - KEYPER_SET_MANAGER_CONTRACT_ADDRESS=${KEYPER_SET_MANAGER_CONTRACT_ADDRESS}
       - KEYPER_HTTP_URL=${KEYPER_HTTP_URL}
       - SIGNING_KEY=${SIGNING_KEY}
-      - SERVER_PORT=4000
+      - SERVER_PORT=23003
     ports:
       - "23003:23003"
     command: ["./shutter-service-api"]

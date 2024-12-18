@@ -1,5 +1,8 @@
 FROM golang:1.22-alpine AS builder
 
+# Install build-essential and other necessary packages
+RUN apk add --no-cache build-base
+
 WORKDIR /app
 RUN apk add --no-cache git
 COPY go.mod go.sum ./
