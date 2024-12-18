@@ -146,7 +146,6 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 	}
 
 	currentTimestamp := time.Now().Unix()
-
 	if currentTimestamp < int64(registrationData.Timestamp) {
 		log.Debug().Uint64("decryptionTimestamp", registrationData.Timestamp).Int64("currentTimestamp", currentTimestamp).Msg("timestamp not reached yet, decryption key requested too early")
 		err := httpError.NewHttpError(
@@ -481,7 +480,7 @@ func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitm
 		return nil, httpErr
 	}
 
-	key, err := hex.DecodeString(strings.TrimPrefix(string(decKeyResponse.DecryptionKey), "0x"))
+	key, err := hex.DecodeString(strings.TrimPrefix(decKeyResponse.DecryptionKey, "0x"))
 	if err != nil {
 		log.Err(err).Msg("err encountered while decoding decryption key")
 		err := httpError.NewHttpError(
