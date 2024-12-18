@@ -11,5 +11,4 @@ CREATE TABLE decryption_key (
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE decryption_key;
-DROP TABLE identity_registered_event;
 -- +goose StatementEnd
