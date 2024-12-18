@@ -194,7 +194,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 			return nil, &err
 		}
 	} else {
-		decryptionKey = hex.EncodeToString(decKey.DecryptionKey)
+		decryptionKey = "0x" + hex.EncodeToString(decKey.DecryptionKey)
 	}
 
 	return &GetDecryptionKeyResponse{
@@ -481,7 +481,7 @@ func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitm
 		return nil, httpErr
 	}
 
-	key, err := hex.DecodeString(decKeyResponse.DecryptionKey)
+	key, err := hex.DecodeString(strings.TrimPrefix(string(decKeyResponse.DecryptionKey), "0x"))
 	if err != nil {
 		log.Err(err).Msg("err encountered while decoding decryption key")
 		err := httpError.NewHttpError(
