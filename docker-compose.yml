@@ -8,30 +8,30 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=keyper_db
-      - DB_SSL_MODE=disable
-      - RPC_URL=${RPC_URL}
-      - SHUTTER_REGISTRY_CONTRACT_ADDRESS=${SHUTTER_REGISTRY_CONTRACT_ADDRESS}
-      - KEY_BROADCAST_CONTRACT_ADDRESS=${KEY_BROADCAST_CONTRACT_ADDRESS}
-      - KEYPER_SET_MANAGER_CONTRACT_ADDRESS=${KEYPER_SET_MANAGER_CONTRACT_ADDRESS}
-      - KEYPER_HTTP_URL=${KEYPER_HTTP_URL}
-      - SIGNING_KEY=${SIGNING_KEY}
-      - SERVER_PORT=23003
+      DB_HOST:
+      DB_PORT:
+      DB_USER:
+      DB_PASSWORD:
+      DB_NAME:
+      DB_SSL_MODE:
+      RPC_URL:
+      SHUTTER_REGISTRY_CONTRACT_ADDRESS:
+      KEY_BROADCAST_CONTRACT_ADDRESS:
+      KEYPER_SET_MANAGER_CONTRACT_ADDRESS:
+      KEYPER_HTTP_URL:
+      SIGNING_KEY:
+      SERVER_PORT: 8001
     ports:
-      - "23003:23003"
+      - "8001:8001"
     command: ["./shutter-service-api"]
 
   db:
     image: postgres:14.12
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=postgres
+      - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=keyper_db
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
