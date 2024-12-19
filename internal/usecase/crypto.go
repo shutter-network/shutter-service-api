@@ -454,6 +454,80 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 	}, nil
 }
 
+func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitment string, identity string) ([]byte, *httpError.Http) {
+	if len(encryptedCommitment) == 0 {
+		log.Debug().Msg("empty encrypted commitment")
+		err := httpError.NewHttpError(
+			"empty encrypted commitment",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+	encryptedCommitmentBytes, err := hex.DecodeString(encryptedCommitment)
+	if err != nil {
+		log.Err(err).Msg("err encountered while decoding encrypted commitment")
+		err := httpError.NewHttpError(
+			"error encountered while decoding encrypted commitment",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+
+	decKeyResponse, httpErr := uc.GetDecryptionKey(ctx, identity)
+	if httpErr != nil {
+		return nil, httpErr
+	}
+
+	key, err := hex.DecodeString(strings.TrimPrefix(decKeyResponse.DecryptionKey, "0x"))
+	if err != nil {
+		log.Err(err).Msg("err encountered while decoding decryption key")
+		err := httpError.NewHttpError(
+			"error encountered while decoding decryption key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	decryptionKey := new(shcrypto.EpochSecretKey)
+	err = decryptionKey.Unmarshal(key)
+	if err != nil {
+		log.Err(err).Msg("err while decoding decryption key")
+		err := httpError.NewHttpError(
+			"error while decoding decryption key",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+
+	encryptedMsg := new(shcrypto.EncryptedMessage)
+	err = encryptedMsg.Unmarshal(encryptedCommitmentBytes)
+	if err != nil {
+		log.Err(err).Msg("err while decoding encrypted commitment")
+		err := httpError.NewHttpError(
+			"error while decoding encrypted commitment",
+			"",
+			http.StatusBadRequest,
+		)
+		return nil, &err
+	}
+
+	decryptedMsg, err := encryptedMsg.Decrypt(decryptionKey)
+	if err != nil {
+		log.Err(err).Msg("err while decrypting message")
+		err := httpError.NewHttpError(
+			"error encountered while decrypting message",
+			"",
+			http.StatusInternalServerError,
+		)
+		return nil, &err
+	}
+	return decryptedMsg, nil
+}
+
 func (uc *CryptoUsecase) getDecryptionKeyFromExternalKeyper(ctx context.Context, eon int64, identity string) (string, error) {
 	path := uc.config.KeyperHTTPURL.JoinPath("/decryptionKey/", fmt.Sprint(eon), "/", identity)
 

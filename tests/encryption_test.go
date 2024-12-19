@@ -31,11 +31,11 @@ func generateP2(i *big.Int) *blst.P2Affine {
 	return blst.P2Generator().Mult(s).ToAffine()
 }
 
-func (s *TestShutterService) makeKeys() (*shcrypto.EonPublicKey, *shcrypto.EpochSecretKey, *shcrypto.EpochID) {
+func (s *TestShutterService) makeKeys(identity []byte) (*shcrypto.EonPublicKey, *shcrypto.EpochSecretKey, *shcrypto.EpochID) {
 	s.T().Helper()
 	n := 3
 	threshold := uint64(2)
-	epochID := shcrypto.ComputeEpochID([]byte("epoch1"))
+	epochID := shcrypto.ComputeEpochID(identity)
 
 	ps := []*shcrypto.Polynomial{}
 	gammas := []*shcrypto.Gammas{}
@@ -80,11 +80,13 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 	identityPrefixStringified := hex.EncodeToString(identityPrefix)
+	identity := common.ComputeIdentity(identityPrefix, ethCommon.HexToAddress(sender))
+
 	blockNumber := rand.Uint64()
 
 	eon := rand.Uint64()
 
-	eonPublicKey, _, _ := s.makeKeys()
+	eonPublicKey, _, _ := s.makeKeys(identity)
 
 	s.ethClient.
 		On("BlockNumber", ctx).
@@ -104,8 +106,6 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	data, err := s.cryptoUsecase.GetDataForEncryption(ctx, sender, identityPrefixStringified)
 	s.Require().Nil(err)
 
-	identity := common.ComputeIdentity(identityPrefix, ethCommon.HexToAddress(sender))
-
 	s.Require().Equal(data.Eon, eon)
 	s.Require().Equal(hex.EncodeToString(identity), data.Identity)
 	s.Require().Equal(hex.EncodeToString(identityPrefix), data.IdentityPrefix)
@@ -118,10 +118,11 @@ func (s *TestShutterService) TestGetDataForEncryptionInvalidSender() {
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
 	identityPrefixStringified := hex.EncodeToString(identityPrefix)
+	identity := common.ComputeIdentity(identityPrefix, ethCommon.HexToAddress(sender))
 	blockNumber := rand.Uint64()
 	eon := rand.Uint64()
 
-	eonPublicKey, _, _ := s.makeKeys()
+	eonPublicKey, _, _ := s.makeKeys(identity)
 
 	s.ethClient.
 		On("BlockNumber", ctx).

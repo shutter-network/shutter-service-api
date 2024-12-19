@@ -103,3 +103,36 @@ func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 		"message": data,
 	})
 }
+
+func (svc *CryptoService) DecryptCommitment(ctx *gin.Context) {
+	identity, ok := ctx.GetQuery("identity")
+	if !ok {
+		err := error.NewHttpError(
+			"query parameter not found",
+			"identity query parameter is required",
+			http.StatusBadRequest,
+		)
+		ctx.Error(err)
+		return
+	}
+
+	encryptedCommitment, ok := ctx.GetQuery("encryptedCommitment")
+	if !ok {
+		err := error.NewHttpError(
+			"query parameter not found",
+			"encrypted commitment query parameter is required",
+			http.StatusBadRequest,
+		)
+		ctx.Error(err)
+		return
+	}
+
+	data, err := svc.CryptoUsecase.DecryptCommitment(ctx, encryptedCommitment, identity)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": data,
+	})
+}
