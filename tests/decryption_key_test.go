@@ -8,6 +8,7 @@ import (
 	"math/rand"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shutter-network/shutter-service-api/common"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -50,9 +51,9 @@ func (s *TestShutterService) TestGetDecryptionKey() {
 	data, err := s.cryptoUsecase.GetDecryptionKey(ctx, identityStringified)
 	s.Require().Nil(err)
 
-	s.Require().Equal(data.DecryptionKey, "0x"+hex.EncodeToString(decryptionKey))
+	s.Require().Equal(data.DecryptionKey, common.PrefixWith0x(hex.EncodeToString(decryptionKey)))
 	s.Require().Equal(int(data.DecryptionTimestamp), timestamp)
-	s.Require().Equal(data.Identity, hex.EncodeToString(identity))
+	s.Require().Equal(data.Identity, common.PrefixWith0x(hex.EncodeToString(identity)))
 }
 
 func (s *TestShutterService) TestGetDecryptionKeyNotRegistered() {
