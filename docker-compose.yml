@@ -1,0 +1,46 @@
+services:
+  shutter-service-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST:
+      DB_PORT:
+      DB_USER:
+      DB_PASSWORD:
+      DB_NAME:
+      DB_SSL_MODE:
+      RPC_URL:
+      SHUTTER_REGISTRY_CONTRACT_ADDRESS:
+      KEY_BROADCAST_CONTRACT_ADDRESS:
+      KEYPER_SET_MANAGER_CONTRACT_ADDRESS:
+      KEYPER_HTTP_URL:
+      SIGNING_KEY:
+      SERVER_PORT: 8001
+    ports:
+      - "8001:8001"
+    command: ["./shutter-service-api"]
+
+  db:
+    image: postgres:14.12
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      start_interval: "2s"
+      start_period: "30s"
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+volumes:
+  pgdata:

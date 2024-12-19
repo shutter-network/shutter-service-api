@@ -40,7 +40,7 @@ func main() {
 	keyperSetManagerContractAddressStringified := os.Getenv("KEYPER_SET_MANAGER_CONTRACT_ADDRESS")
 	keyperSetManagerContractAddress := common.HexToAddress(keyperSetManagerContractAddressStringified)
 
-	contract, err := shutterServiceCommon.NewContract(client, shutterRegistryContractAddress, keyBroadcastContractAddress, keyperSetManagerContractAddress)
+	contract, err := shutterServiceCommon.NewContract(client, shutterRegistryContractAddress, keyperSetManagerContractAddress, keyBroadcastContractAddress)
 	if err != nil {
 		log.Err(err).Msg("failed to instantiate shutter contracts")
 		return
