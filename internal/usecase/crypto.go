@@ -196,6 +196,10 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 		decryptionKey = "0x" + hex.EncodeToString(decKey.DecryptionKey)
 	}
 
+	if !strings.HasPrefix(identity, "0x") {
+		identity = common.PrefixWith0x(identity)
+	}
+
 	return &GetDecryptionKeyResponse{
 		DecryptionKey:       decryptionKey,
 		Identity:            identity,
@@ -300,9 +304,9 @@ func (uc *CryptoUsecase) GetDataForEncryption(ctx context.Context, address strin
 
 	return &GetDataForEncryptionResponse{
 		Eon:            eon,
-		Identity:       hex.EncodeToString(identity),
-		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
-		EonKey:         hex.EncodeToString(eonKeyBytes),
+		Identity:       common.PrefixWith0x(hex.EncodeToString(identity)),
+		IdentityPrefix: common.PrefixWith0x(hex.EncodeToString(identityPrefix[:])),
+		EonKey:         common.PrefixWith0x(hex.EncodeToString(eonKeyBytes)),
 	}, nil
 }
 
@@ -447,9 +451,9 @@ func (uc *CryptoUsecase) RegisterIdentity(ctx context.Context, decryptionTimesta
 
 	return &RegisterIdentityResponse{
 		Eon:            eon,
-		Identity:       hex.EncodeToString(identity),
-		IdentityPrefix: hex.EncodeToString(identityPrefix[:]),
-		EonKey:         hex.EncodeToString(eonKeyBytes),
+		Identity:       common.PrefixWith0x(hex.EncodeToString(identity)),
+		IdentityPrefix: common.PrefixWith0x(hex.EncodeToString(identityPrefix[:])),
+		EonKey:         common.PrefixWith0x(hex.EncodeToString(eonKeyBytes)),
 		TxHash:         tx.Hash().Hex(),
 	}, nil
 }
