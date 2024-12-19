@@ -193,7 +193,7 @@ func (uc *CryptoUsecase) GetDecryptionKey(ctx context.Context, identity string) 
 			return nil, &err
 		}
 	} else {
-		decryptionKey = "0x" + hex.EncodeToString(decKey.DecryptionKey)
+		decryptionKey = common.PrefixWith0x(hex.EncodeToString(decKey.DecryptionKey))
 	}
 
 	if !strings.HasPrefix(identity, "0x") {
