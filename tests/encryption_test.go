@@ -107,9 +107,9 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	s.Require().Nil(err)
 
 	s.Require().Equal(data.Eon, eon)
-	s.Require().Equal(hex.EncodeToString(identity), data.Identity)
-	s.Require().Equal(hex.EncodeToString(identityPrefix), data.IdentityPrefix)
-	s.Require().Equal(data.EonKey, hex.EncodeToString(eonPublicKey.Marshal()))
+	s.Require().Equal(common.PrefixWith0x(hex.EncodeToString(identity)), data.Identity)
+	s.Require().Equal(common.PrefixWith0x(hex.EncodeToString(identityPrefix)), data.IdentityPrefix)
+	s.Require().Equal(data.EonKey, common.PrefixWith0x(hex.EncodeToString(eonPublicKey.Marshal())))
 }
 
 func (s *TestShutterService) TestGetDataForEncryptionInvalidSender() {
