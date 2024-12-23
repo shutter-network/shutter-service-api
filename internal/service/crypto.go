@@ -32,6 +32,21 @@ func NewCryptoService(
 	}
 }
 
+//	@BasePath	/api
+
+// GetDecryptionKey godoc
+//	@Summary		Get decryption key
+//	@Description	Retrieves a decryption key for a given identity
+//	@Tags			Crypto
+//	@Accept			json
+//	@Produce		json
+//	@Param			identity	query		string	true	"Identity associated with the decryption key"
+//	@Success		200			{object}	usecase.GetDecryptionKeyResponse
+//	@Failure		400			{object}	error.Http
+//	@Failure		404			{object}	error.Http
+//	@Failure		500			{object}	error.Http
+//	@Router			/get_decryption_key [get]
+
 func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 	identity, ok := ctx.GetQuery("identity")
 	if !ok {

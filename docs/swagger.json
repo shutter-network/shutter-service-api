@@ -1,0 +1,89 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Shutter service API",
+        "contact": {}
+    },
+    "paths": {
+        "/get_decryption_key": {
+            "get": {
+                "description": "Retrieves a decryption key for a given identity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Get decryption key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Identity associated with the decryption key",
+                        "name": "identity",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.GetDecryptionKeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "error.Http": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
+        },
+        "usecase.GetDecryptionKeyResponse": {
+            "type": "object",
+            "properties": {
+                "decryptionKey": {
+                    "type": "string"
+                },
+                "decryptionTimestamp": {
+                    "type": "integer"
+                },
+                "identity": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

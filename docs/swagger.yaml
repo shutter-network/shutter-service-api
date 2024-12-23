@@ -1,0 +1,57 @@
+definitions:
+  error.Http:
+    properties:
+      description:
+        type: string
+      metadata:
+        type: string
+      statusCode:
+        type: integer
+    type: object
+  usecase.GetDecryptionKeyResponse:
+    properties:
+      decryptionKey:
+        type: string
+      decryptionTimestamp:
+        type: integer
+      identity:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Shutter service API
+paths:
+  /get_decryption_key:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a decryption key for a given identity
+      parameters:
+      - description: Identity associated with the decryption key
+        in: query
+        name: identity
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecase.GetDecryptionKeyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.Http'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.Http'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.Http'
+      summary: Get decryption key
+      tags:
+      - Crypto
+swagger: "2.0"
