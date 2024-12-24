@@ -147,6 +147,21 @@ func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 	})
 }
 
+//	@BasePath	/api
+
+// DecryptCommitment godoc
+//	@Summary		Allows anyone to decrypt their encrypted message
+//	@Description	This endpoint provides a way for users to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.
+//	@Tags			Crypto
+//	@Produce		json
+//	@Param			identity			query		string	true	"Identity used for registeration and encrypting the message."
+//	@Param			encryptedCommitment	query		string	true	"Encrypted commitment is the users encrypted message."
+//	@Success		200					{object}	[]byte
+//	@Failure		400					{object}	error.Http
+//	@Failure		404					{object}	error.Http
+//	@Failure		500					{object}	error.Http
+//	@Router			/decrypt_commitment [get]
+
 func (svc *CryptoService) DecryptCommitment(ctx *gin.Context) {
 	identity, ok := ctx.GetQuery("identity")
 	if !ok {
