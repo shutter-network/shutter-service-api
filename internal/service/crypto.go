@@ -75,12 +75,11 @@ func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 //	@Description	This endpoint provides retrieval of all the necessary data required by users for encrypting any message
 //	@Tags			Crypto
 //	@Produce		json
-//	@Param			address			query		string	true	"Ethereum address associated with the identity. If you are registering the identity yourself, pass the address of the account making the registration. If you want the API to register the identity, pass the address TBD."
-//	@Param			identityPrefix	query		string	false	"Optional identity prefix. You can generate it on your end and pass it to this endpoint, or allow the API to randomly generate one for you."
-//	@Success		200				{object}	usecase.GetDataForEncryptionResponse
-//	@Failure		400				{object}	error.Http
-//	@Failure		404				{object}	error.Http
-//	@Failure		500				{object}	error.Http
+//	@Param			address			query		string									true	"Ethereum address associated with the identity. If you are registering the identity yourself, pass the address of the account making the registration. If you want the API to register the identity, pass the address TBD."
+//	@Param			identityPrefix	query		string									false	"Optional identity prefix. You can generate it on your end and pass it to this endpoint, or allow the API to randomly generate one for you."
+//	@Success		200				{object}	usecase.GetDataForEncryptionResponse	"Success"
+//	@Failure		400				{object}	error.Http								"Invalid Get data for encryption request."
+//	@Failure		500				{object}	error.Http								"Internal server error"
 //	@Router			/get_data_for_encryption [get]
 
 func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
