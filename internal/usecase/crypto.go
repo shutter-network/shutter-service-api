@@ -66,11 +66,11 @@ type GetDataForEncryptionResponse struct {
 }
 
 type RegisterIdentityResponse struct {
-	Eon            uint64
-	Identity       string
-	IdentityPrefix string
-	EonKey         string
-	TxHash         string
+	Eon            uint64 `json:"eon" example:"1"`
+	Identity       string `json:"identity" example:"0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"`
+	IdentityPrefix string `json:"identity_prefix" example:"0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"`
+	EonKey         string `json:"eon_key" example:"0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255"`
+	TxHash         string `json:"tx_hash" example:"0x3026ad202ca611551377eef069fb6ed894eae65329ce73c56f300129694f12ba"`
 }
 
 type CryptoUsecase struct {

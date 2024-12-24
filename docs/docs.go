@@ -24,7 +24,7 @@ const docTemplate = `{
                 "tags": [
                     "Crypto"
                 ],
-                "summary": "Allows anyone to decrypt their encrypted message",
+                "summary": "Allows anyone to decrypt their encrypted message.",
                 "parameters": [
                     {
                         "type": "string",
@@ -74,14 +74,14 @@ const docTemplate = `{
         },
         "/get_data_for_encryption": {
             "get": {
-                "description": "This endpoint provides retrieval of all the necessary data required by users for encrypting any message",
+                "description": "This endpoint provides retrieval of all the necessary data required by users for encrypting any message.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Crypto"
                 ],
-                "summary": "Provides data necessary to allow encryption",
+                "summary": "Provides data necessary to allow encryption.",
                 "parameters": [
                     {
                         "type": "string",
@@ -99,7 +99,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Success.",
                         "schema": {
                             "$ref": "#/definitions/usecase.GetDataForEncryptionResponse"
                         }
@@ -111,7 +111,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal server error.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
@@ -121,18 +121,18 @@ const docTemplate = `{
         },
         "/get_decryption_key": {
             "get": {
-                "description": "Retrieves a decryption key for a given registered identity",
+                "description": "Retrieves a decryption key for a given registered identity.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Crypto"
                 ],
-                "summary": "Get decryption key",
+                "summary": "Get decryption key.",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Identity associated with the decryption key",
+                        "description": "Identity associated with the decryption key.",
                         "name": "identity",
                         "in": "query",
                         "required": true
@@ -140,7 +140,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Success.",
                         "schema": {
                             "$ref": "#/definitions/usecase.GetDecryptionKeyResponse"
                         }
@@ -175,10 +175,10 @@ const docTemplate = `{
                 "tags": [
                     "Crypto"
                 ],
-                "summary": "Allows users to register any identity",
+                "summary": "Allows users to register any identity.",
                 "parameters": [
                     {
-                        "description": "Timestamp and Identity which user want to make the registration with",
+                        "description": "Timestamp and Identity which user want to make the registration with.",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -189,25 +189,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success.",
                         "schema": {
                             "$ref": "#/definitions/usecase.RegisterIdentityResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.Http"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                        "description": "Invalid Register identity request.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
@@ -284,19 +278,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "eon": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
-                "eonKey": {
-                    "type": "string"
+                "eon_key": {
+                    "type": "string",
+                    "example": "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255"
                 },
                 "identity": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
                 },
-                "identityPrefix": {
-                    "type": "string"
+                "identity_prefix": {
+                    "type": "string",
+                    "example": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
                 },
-                "txHash": {
-                    "type": "string"
+                "tx_hash": {
+                    "type": "string",
+                    "example": "0x3026ad202ca611551377eef069fb6ed894eae65329ce73c56f300129694f12ba"
                 }
             }
         }

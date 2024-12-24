@@ -45,14 +45,19 @@ definitions:
   usecase.RegisterIdentityResponse:
     properties:
       eon:
+        example: 1
         type: integer
-      eonKey:
+      eon_key:
+        example: 0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255
         type: string
       identity:
+        example: 0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75
         type: string
-      identityPrefix:
+      identity_prefix:
+        example: 0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0
         type: string
-      txHash:
+      tx_hash:
+        example: 0x3026ad202ca611551377eef069fb6ed894eae65329ce73c56f300129694f12ba
         type: string
     type: object
 info:
@@ -97,13 +102,13 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/error.Http'
-      summary: Allows anyone to decrypt their encrypted message
+      summary: Allows anyone to decrypt their encrypted message.
       tags:
       - Crypto
   /get_data_for_encryption:
     get:
       description: This endpoint provides retrieval of all the necessary data required
-        by users for encrypting any message
+        by users for encrypting any message.
       parameters:
       - description: Ethereum address associated with the identity. If you are registering
           the identity yourself, pass the address of the account making the registration.
@@ -122,7 +127,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success
+          description: Success.
           schema:
             $ref: '#/definitions/usecase.GetDataForEncryptionResponse'
         "400":
@@ -130,17 +135,17 @@ paths:
           schema:
             $ref: '#/definitions/error.Http'
         "500":
-          description: Internal server error
+          description: Internal server error.
           schema:
             $ref: '#/definitions/error.Http'
-      summary: Provides data necessary to allow encryption
+      summary: Provides data necessary to allow encryption.
       tags:
       - Crypto
   /get_decryption_key:
     get:
-      description: Retrieves a decryption key for a given registered identity
+      description: Retrieves a decryption key for a given registered identity.
       parameters:
-      - description: Identity associated with the decryption key
+      - description: Identity associated with the decryption key.
         in: query
         name: identity
         required: true
@@ -149,7 +154,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success
+          description: Success.
           schema:
             $ref: '#/definitions/usecase.GetDecryptionKeyResponse'
         "400":
@@ -164,7 +169,7 @@ paths:
           description: Internal server error.
           schema:
             $ref: '#/definitions/error.Http'
-      summary: Get decryption key
+      summary: Get decryption key.
       tags:
       - Crypto
   /register_identity:
@@ -174,7 +179,7 @@ paths:
         key for the associated encrypted message.
       parameters:
       - description: Timestamp and Identity which user want to make the registration
-          with
+          with.
         in: body
         name: request
         required: true
@@ -184,22 +189,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success.
           schema:
             $ref: '#/definitions/usecase.RegisterIdentityResponse'
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/error.Http'
-        "404":
-          description: Not Found
+          description: Invalid Register identity request.
           schema:
             $ref: '#/definitions/error.Http'
         "500":
-          description: Internal Server Error
+          description: Internal server error.
           schema:
             $ref: '#/definitions/error.Http'
-      summary: Allows users to register any identity
+      summary: Allows users to register any identity.
       tags:
       - Crypto
 swagger: "2.0"
