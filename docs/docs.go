@@ -15,6 +15,59 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/get_data_for_encryption": {
+            "get": {
+                "description": "This endpoint provides retrieval of all the necessary data required by users for encrypting any message",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Provides data necessary to allow encryption",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ethereum address associated with the identity. If you are registering the identity yourself, pass the address of the account making the registration. If you want the API to register the identity, pass the address TBD.",
+                        "name": "address",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional identity prefix. You can generate it on your end and pass it to this endpoint, or allow the API to randomly generate one for you.",
+                        "name": "identityPrefix",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.GetDataForEncryptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
+        },
         "/get_decryption_key": {
             "get": {
                 "description": "Retrieves a decryption key for a given registered identity",
@@ -75,6 +128,23 @@ const docTemplate = `{
                 },
                 "statusCode": {
                     "type": "integer"
+                }
+            }
+        },
+        "usecase.GetDataForEncryptionResponse": {
+            "type": "object",
+            "properties": {
+                "eon": {
+                    "type": "integer"
+                },
+                "eonKey": {
+                    "type": "string"
+                },
+                "identity": {
+                    "type": "string"
+                },
+                "identityPrefix": {
+                    "type": "string"
                 }
             }
         },
