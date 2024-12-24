@@ -32,6 +32,20 @@ func NewCryptoService(
 	}
 }
 
+//	@BasePath	/api
+
+// GetDecryptionKey godoc
+//	@Summary		Get decryption key.
+//	@Description	Retrieves a decryption key for a given registered identity.
+//	@Tags			Crypto
+//	@Produce		json
+//	@Param			identity	query		string								true	"Identity associated with the decryption key."
+//	@Success		200			{object}	usecase.GetDecryptionKeyResponse	"Success."
+//	@Failure		400			{object}	error.Http							"Invalid Get decryption key request."
+//	@Failure		404			{object}	error.Http							"Decryption key not found for the associated identity."
+//	@Failure		500			{object}	error.Http							"Internal server error."
+//	@Router			/get_decryption_key [get]
+
 func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 	identity, ok := ctx.GetQuery("identity")
 	if !ok {
@@ -53,6 +67,20 @@ func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 		"message": data,
 	})
 }
+
+//	@BasePath	/api
+
+// GetDataForEncryption godoc
+//	@Summary		Provides data necessary to allow encryption.
+//	@Description	This endpoint provides retrieval of all the necessary data required by users for encrypting any message.
+//	@Tags			Crypto
+//	@Produce		json
+//	@Param			address			query		string									true	"Ethereum address associated with the identity. If you are registering the identity yourself, pass the address of the account making the registration. If you want the API to register the identity, pass the address TBD."
+//	@Param			identityPrefix	query		string									false	"Optional identity prefix. You can generate it on your end and pass it to this endpoint, or allow the API to randomly generate one for you."
+//	@Success		200				{object}	usecase.GetDataForEncryptionResponse	"Success."
+//	@Failure		400				{object}	error.Http								"Invalid Get data for encryption request."
+//	@Failure		500				{object}	error.Http								"Internal server error."
+//	@Router			/get_data_for_encryption [get]
 
 func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
 	address, ok := ctx.GetQuery("address")
@@ -81,6 +109,20 @@ func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
 	})
 }
 
+//	@BasePath	/api
+
+// RegisterIdentity godoc
+//	@Summary		Allows users to register any identity.
+//	@Description	This endpoint allows user to register an identity which they used for encryption and set a particular timestamp for the release of the decryption key for the associated encrypted message.
+//	@Tags			Crypto
+//	@Accepts		json
+//	@Produce		json
+//	@Param			request	body		RegisterIdentityRequest				true	"Timestamp and Identity which user want to make the registration with."
+//	@Success		200		{object}	usecase.RegisterIdentityResponse	"Success."
+//	@Failure		400		{object}	error.Http							"Invalid Register identity request."
+//	@Failure		500		{object}	error.Http							"Internal server error."
+//	@Router			/register_identity [post]
+
 func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 	var req RegisterIdentityRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -103,6 +145,20 @@ func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 		"message": data,
 	})
 }
+
+//	@BasePath	/api
+
+// DecryptCommitment godoc
+//	@Summary		Allows anyone to decrypt their encrypted message.
+//	@Description	This endpoint provides a way for users to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.
+//	@Tags			Crypto
+//	@Produce		json
+//	@Param			identity			query		string		true	"Identity used for registeration and encrypting the message."
+//	@Param			encryptedCommitment	query		string		true	"Encrypted commitment is the users encrypted message."
+//	@Success		200					{object}	[]byte		"Success."
+//	@Failure		400					{object}	error.Http	"Invalid Decrypt commitment request."
+//	@Failure		500					{object}	error.Http	"Internal server error."
+//	@Router			/decrypt_commitment [get]
 
 func (svc *CryptoService) DecryptCommitment(ctx *gin.Context) {
 	identity, ok := ctx.GetQuery("identity")

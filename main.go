@@ -10,9 +10,11 @@ import (
 	"github.com/rs/zerolog/log"
 	shutterServiceCommon "github.com/shutter-network/shutter-service-api/common"
 	"github.com/shutter-network/shutter-service-api/common/database"
+	_ "github.com/shutter-network/shutter-service-api/docs"
 	"github.com/shutter-network/shutter-service-api/internal/router"
 )
 
+// @title Shutter service API
 func main() {
 	port := os.Getenv("SERVER_PORT")
 
