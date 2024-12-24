@@ -8,6 +8,13 @@ definitions:
       statusCode:
         type: integer
     type: object
+  service.RegisterIdentityRequest:
+    properties:
+      decryptionTimestamp:
+        type: integer
+      identityPrefix:
+        type: string
+    type: object
   usecase.GetDataForEncryptionResponse:
     properties:
       eon:
@@ -26,6 +33,19 @@ definitions:
       decryptionTimestamp:
         type: integer
       identity:
+        type: string
+    type: object
+  usecase.RegisterIdentityResponse:
+    properties:
+      eon:
+        type: integer
+      eonKey:
+        type: string
+      identity:
+        type: string
+      identityPrefix:
+        type: string
+      txHash:
         type: string
     type: object
 info:
@@ -101,6 +121,41 @@ paths:
           schema:
             $ref: '#/definitions/error.Http'
       summary: Get decryption key
+      tags:
+      - Crypto
+  /register_identity:
+    post:
+      description: This endpoint allows user to register an identity which they used
+        for encryption and set a particular timestamp for the release of the decryption
+        key for the associated encrypted message.
+      parameters:
+      - description: Timestamp and Identity which user want to make the registration
+          with
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.RegisterIdentityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecase.RegisterIdentityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.Http'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.Http'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.Http'
+      summary: Allows users to register any identity
       tags:
       - Crypto
 swagger: "2.0"

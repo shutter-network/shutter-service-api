@@ -114,6 +114,55 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/register_identity": {
+            "post": {
+                "description": "This endpoint allows user to register an identity which they used for encryption and set a particular timestamp for the release of the decryption key for the associated encrypted message.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Allows users to register any identity",
+                "parameters": [
+                    {
+                        "description": "Timestamp and Identity which user want to make the registration with",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.RegisterIdentityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.RegisterIdentityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -128,6 +177,17 @@ const docTemplate = `{
                 },
                 "statusCode": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.RegisterIdentityRequest": {
+            "type": "object",
+            "properties": {
+                "decryptionTimestamp": {
+                    "type": "integer"
+                },
+                "identityPrefix": {
+                    "type": "string"
                 }
             }
         },
@@ -158,6 +218,26 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "identity": {
+                    "type": "string"
+                }
+            }
+        },
+        "usecase.RegisterIdentityResponse": {
+            "type": "object",
+            "properties": {
+                "eon": {
+                    "type": "integer"
+                },
+                "eonKey": {
+                    "type": "string"
+                },
+                "identity": {
+                    "type": "string"
+                },
+                "identityPrefix": {
+                    "type": "string"
+                },
+                "txHash": {
                     "type": "string"
                 }
             }
