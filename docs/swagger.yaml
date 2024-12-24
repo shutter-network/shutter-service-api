@@ -85,21 +85,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success.
           schema:
             items:
               type: integer
             type: array
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/error.Http'
-        "404":
-          description: Not Found
+          description: Invalid Decrypt commitment request.
           schema:
             $ref: '#/definitions/error.Http'
         "500":
-          description: Internal Server Error
+          description: Internal server error.
           schema:
             $ref: '#/definitions/error.Http'
       summary: Allows anyone to decrypt their encrypted message.

@@ -43,7 +43,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -52,19 +52,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.Http"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                        "description": "Invalid Decrypt commitment request.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }

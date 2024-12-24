@@ -153,12 +153,11 @@ func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 //	@Description	This endpoint provides a way for users to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.
 //	@Tags			Crypto
 //	@Produce		json
-//	@Param			identity			query		string	true	"Identity used for registeration and encrypting the message."
-//	@Param			encryptedCommitment	query		string	true	"Encrypted commitment is the users encrypted message."
-//	@Success		200					{object}	[]byte
-//	@Failure		400					{object}	error.Http
-//	@Failure		404					{object}	error.Http
-//	@Failure		500					{object}	error.Http
+//	@Param			identity			query		string		true	"Identity used for registeration and encrypting the message."
+//	@Param			encryptedCommitment	query		string		true	"Encrypted commitment is the users encrypted message."
+//	@Success		200					{object}	[]byte		"Success."
+//	@Failure		400					{object}	error.Http	"Invalid Decrypt commitment request."
+//	@Failure		500					{object}	error.Http	"Internal server error."
 //	@Router			/decrypt_commitment [get]
 
 func (svc *CryptoService) DecryptCommitment(ctx *gin.Context) {
