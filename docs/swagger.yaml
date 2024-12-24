@@ -23,9 +23,7 @@ info:
 paths:
   /get_decryption_key:
     get:
-      consumes:
-      - application/json
-      description: Retrieves a decryption key for a given identity
+      description: Retrieves a decryption key for a given registered identity
       parameters:
       - description: Identity associated with the decryption key
         in: query

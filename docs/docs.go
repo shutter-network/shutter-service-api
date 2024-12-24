@@ -17,10 +17,7 @@ const docTemplate = `{
     "paths": {
         "/get_decryption_key": {
             "get": {
-                "description": "Retrieves a decryption key for a given identity",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Retrieves a decryption key for a given registered identity",
                 "produces": [
                     "application/json"
                 ],

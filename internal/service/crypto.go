@@ -36,9 +36,8 @@ func NewCryptoService(
 
 // GetDecryptionKey godoc
 //	@Summary		Get decryption key
-//	@Description	Retrieves a decryption key for a given identity
+//	@Description	Retrieves a decryption key for a given registered identity
 //	@Tags			Crypto
-//	@Accept			json
 //	@Produce		json
 //	@Param			identity	query		string	true	"Identity associated with the decryption key"
 //	@Success		200			{object}	usecase.GetDecryptionKeyResponse
