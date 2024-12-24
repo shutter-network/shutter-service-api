@@ -116,6 +116,7 @@ func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
 //	@Summary		Allows users to register any identity
 //	@Description	This endpoint allows user to register an identity which they used for encryption and set a particular timestamp for the release of the decryption key for the associated encrypted message.
 //	@Tags			Crypto
+//	@Accepts		json
 //	@Produce		json
 //	@Param			request	body		RegisterIdentityRequest	true	"Timestamp and Identity which user want to make the registration with"
 //	@Success		200		{object}	usecase.RegisterIdentityResponse
