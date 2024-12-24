@@ -146,25 +146,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success",
                         "schema": {
                             "$ref": "#/definitions/usecase.GetDecryptionKeyResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid Get decryption key request.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Decryption key not found for the associated identity.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error.",
                         "schema": {
                             "$ref": "#/definitions/error.Http"
                         }
@@ -268,14 +268,17 @@ const docTemplate = `{
         "usecase.GetDecryptionKeyResponse": {
             "type": "object",
             "properties": {
-                "decryptionKey": {
-                    "type": "string"
+                "decryption_key": {
+                    "type": "string",
+                    "example": "0x99a805fc26812c13041126b25e91eccf3de464d1df7a95d1edca8831a9ec02dd"
                 },
-                "decryptionTimestamp": {
-                    "type": "integer"
+                "decryption_timestamp": {
+                    "type": "integer",
+                    "example": 1735044061
                 },
                 "identity": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
                 }
             }
         },

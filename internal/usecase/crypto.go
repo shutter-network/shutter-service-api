@@ -53,9 +53,9 @@ type EthClientInterface interface {
 }
 
 type GetDecryptionKeyResponse struct {
-	DecryptionKey       string
-	Identity            string
-	DecryptionTimestamp uint64
+	DecryptionKey       string `json:"decryption_key" example:"0x99a805fc26812c13041126b25e91eccf3de464d1df7a95d1edca8831a9ec02dd"`
+	Identity            string `json:"identity" example:"0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"`
+	DecryptionTimestamp uint64 `json:"decryption_timestamp" example:"1735044061"`
 }
 
 type GetDataForEncryptionResponse struct {

@@ -39,11 +39,11 @@ func NewCryptoService(
 //	@Description	Retrieves a decryption key for a given registered identity
 //	@Tags			Crypto
 //	@Produce		json
-//	@Param			identity	query		string	true	"Identity associated with the decryption key"
-//	@Success		200			{object}	usecase.GetDecryptionKeyResponse
-//	@Failure		400			{object}	error.Http
-//	@Failure		404			{object}	error.Http
-//	@Failure		500			{object}	error.Http
+//	@Param			identity	query		string								true	"Identity associated with the decryption key"
+//	@Success		200			{object}	usecase.GetDecryptionKeyResponse	"Success"
+//	@Failure		400			{object}	error.Http							"Invalid Get decryption key request."
+//	@Failure		404			{object}	error.Http							"Decryption key not found for the associated identity."
+//	@Failure		500			{object}	error.Http							"Internal server error."
 //	@Router			/get_decryption_key [get]
 
 func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
