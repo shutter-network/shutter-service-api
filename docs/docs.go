@@ -17,14 +17,14 @@ const docTemplate = `{
     "paths": {
         "/decrypt_commitment": {
             "get": {
-                "description": "This endpoint provides a way for users to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.",
+                "description": "Provides a way for clients to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Crypto"
                 ],
-                "summary": "Allows anyone to decrypt their encrypted message.",
+                "summary": "Allows clients to decrypt their encrypted message.",
                 "parameters": [
                     {
                         "type": "string",
@@ -68,7 +68,7 @@ const docTemplate = `{
         },
         "/get_data_for_encryption": {
             "get": {
-                "description": "This endpoint provides retrieval of all the necessary data required by users for encrypting any message.",
+                "description": "Retrieves all the necessary data required by clients for encrypting any message.",
                 "produces": [
                     "application/json"
                 ],
@@ -115,7 +115,7 @@ const docTemplate = `{
         },
         "/get_decryption_key": {
             "get": {
-                "description": "Retrieves a decryption key for a given registered identity.",
+                "description": "Retrieves a decryption key for a given registered identity once the timestamp is reached. Decryption key is 0x padded, clients need to remove the prefix when decrypting on thier end.",
                 "produces": [
                     "application/json"
                 ],
@@ -162,17 +162,17 @@ const docTemplate = `{
         },
         "/register_identity": {
             "post": {
-                "description": "This endpoint allows user to register an identity which they used for encryption and set a particular timestamp for the release of the decryption key for the associated encrypted message.",
+                "description": "Allows clients to register an identity used for encryption and specify a release timestamp for the decryption key associated with the encrypted message.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Crypto"
                 ],
-                "summary": "Allows users to register any identity.",
+                "summary": "Allows clients to register any identity.",
                 "parameters": [
                     {
-                        "description": "Timestamp and Identity which user want to make the registration with.",
+                        "description": "Timestamp and Identity which client want to make the registration with.",
                         "name": "request",
                         "in": "body",
                         "required": true,

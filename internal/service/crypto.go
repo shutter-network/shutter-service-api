@@ -36,7 +36,7 @@ func NewCryptoService(
 
 // GetDecryptionKey godoc
 //	@Summary		Get decryption key.
-//	@Description	Retrieves a decryption key for a given registered identity.
+//	@Description	Retrieves a decryption key for a given registered identity once the timestamp is reached. Decryption key is 0x padded, clients need to remove the prefix when decrypting on thier end.
 //	@Tags			Crypto
 //	@Produce		json
 //	@Param			identity	query		string								true	"Identity associated with the decryption key."
@@ -72,7 +72,7 @@ func (svc *CryptoService) GetDecryptionKey(ctx *gin.Context) {
 
 // GetDataForEncryption godoc
 //	@Summary		Provides data necessary to allow encryption.
-//	@Description	This endpoint provides retrieval of all the necessary data required by users for encrypting any message.
+//	@Description	Retrieves all the necessary data required by clients for encrypting any message.
 //	@Tags			Crypto
 //	@Produce		json
 //	@Param			address			query		string									true	"Ethereum address associated with the identity. If you are registering the identity yourself, pass the address of the account making the registration. If you want the API to register the identity, pass the address TBD."
@@ -112,12 +112,12 @@ func (svc *CryptoService) GetDataForEncryption(ctx *gin.Context) {
 //	@BasePath	/api
 
 // RegisterIdentity godoc
-//	@Summary		Allows users to register any identity.
-//	@Description	This endpoint allows user to register an identity which they used for encryption and set a particular timestamp for the release of the decryption key for the associated encrypted message.
+//	@Summary		Allows clients to register any identity.
+//	@Description	Allows clients to register an identity used for encryption and specify a release timestamp for the decryption key associated with the encrypted message.
 //	@Tags			Crypto
 //	@Accepts		json
 //	@Produce		json
-//	@Param			request	body		RegisterIdentityRequest				true	"Timestamp and Identity which user want to make the registration with."
+//	@Param			request	body		RegisterIdentityRequest				true	"Timestamp and Identity which client want to make the registration with."
 //	@Success		200		{object}	usecase.RegisterIdentityResponse	"Success."
 //	@Failure		400		{object}	error.Http							"Invalid Register identity request."
 //	@Failure		500		{object}	error.Http							"Internal server error."
@@ -149,8 +149,8 @@ func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 //	@BasePath	/api
 
 // DecryptCommitment godoc
-//	@Summary		Allows anyone to decrypt their encrypted message.
-//	@Description	This endpoint provides a way for users to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.
+//	@Summary		Allows clients to decrypt their encrypted message.
+//	@Description	Provides a way for clients to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.
 //	@Tags			Crypto
 //	@Produce		json
 //	@Param			identity			query		string		true	"Identity used for registeration and encrypting the message."

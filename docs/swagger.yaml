@@ -66,10 +66,10 @@ info:
 paths:
   /decrypt_commitment:
     get:
-      description: This endpoint provides a way for users to easily decrypt their
-        encrypted message for which they have registered the identity for. Timestamp
-        with which the identity was registered should have been passed for the message
-        to be decrypted successfully.
+      description: Provides a way for clients to easily decrypt their encrypted message
+        for which they have registered the identity for. Timestamp with which the
+        identity was registered should have been passed for the message to be decrypted
+        successfully.
       parameters:
       - description: Identity used for registeration and encrypting the message.
         in: query
@@ -98,13 +98,13 @@ paths:
           description: Internal server error.
           schema:
             $ref: '#/definitions/error.Http'
-      summary: Allows anyone to decrypt their encrypted message.
+      summary: Allows clients to decrypt their encrypted message.
       tags:
       - Crypto
   /get_data_for_encryption:
     get:
-      description: This endpoint provides retrieval of all the necessary data required
-        by users for encrypting any message.
+      description: Retrieves all the necessary data required by clients for encrypting
+        any message.
       parameters:
       - description: Ethereum address associated with the identity. If you are registering
           the identity yourself, pass the address of the account making the registration.
@@ -139,7 +139,9 @@ paths:
       - Crypto
   /get_decryption_key:
     get:
-      description: Retrieves a decryption key for a given registered identity.
+      description: Retrieves a decryption key for a given registered identity once
+        the timestamp is reached. Decryption key is 0x padded, clients need to remove
+        the prefix when decrypting on thier end.
       parameters:
       - description: Identity associated with the decryption key.
         in: query
@@ -170,11 +172,11 @@ paths:
       - Crypto
   /register_identity:
     post:
-      description: This endpoint allows user to register an identity which they used
-        for encryption and set a particular timestamp for the release of the decryption
-        key for the associated encrypted message.
+      description: Allows clients to register an identity used for encryption and
+        specify a release timestamp for the decryption key associated with the encrypted
+        message.
       parameters:
-      - description: Timestamp and Identity which user want to make the registration
+      - description: Timestamp and Identity which client want to make the registration
           with.
         in: body
         name: request
@@ -196,7 +198,7 @@ paths:
           description: Internal server error.
           schema:
             $ref: '#/definitions/error.Http'
-      summary: Allows users to register any identity.
+      summary: Allows clients to register any identity.
       tags:
       - Crypto
 swagger: "2.0"
