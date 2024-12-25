@@ -32,6 +32,6 @@ func NewRouter(
 		api.POST("/register_identity", cryptoService.RegisterIdentity)
 		api.GET("/decrypt_commitment", cryptoService.DecryptCommitment)
 	}
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return router
 }
