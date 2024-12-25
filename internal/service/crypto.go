@@ -13,8 +13,8 @@ import (
 )
 
 type RegisterIdentityRequest struct {
-	DecryptionTimestamp uint64 `json:"decryptionTimestamp"`
-	IdentityPrefix      string `json:"identityPrefix"`
+	DecryptionTimestamp uint64 `json:"decryptionTimestamp" example:"1735044061"`
+	IdentityPrefix      string `json:"identityPrefix" example:"0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"`
 }
 
 type CryptoService struct {
