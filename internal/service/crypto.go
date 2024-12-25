@@ -154,7 +154,7 @@ func (svc *CryptoService) RegisterIdentity(ctx *gin.Context) {
 //	@Tags			Crypto
 //	@Produce		json
 //	@Param			identity			query		string		true	"Identity used for registeration and encrypting the message."
-//	@Param			encryptedCommitment	query		string		true	"Encrypted commitment is the users encrypted message."
+//	@Param			encryptedCommitment	query		string		true	"Encrypted commitment is the clients encrypted message."
 //	@Success		200					{object}	[]byte		"Success."
 //	@Failure		400					{object}	error.Http	"Invalid Decrypt commitment request."
 //	@Failure		500					{object}	error.Http	"Internal server error."
