@@ -1,0 +1,289 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Shutter service API",
+        "contact": {}
+    },
+    "paths": {
+        "/decrypt_commitment": {
+            "get": {
+                "description": "Provides a way for clients to easily decrypt their encrypted message for which they have registered the identity for. Timestamp with which the identity was registered should have been passed for the message to be decrypted successfully.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Allows clients to decrypt their encrypted message.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Identity used for registeration and encrypting the message.",
+                        "name": "identity",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Encrypted commitment is the clients encrypted message.",
+                        "name": "encryptedCommitment",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Decrypt commitment request.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_data_for_encryption": {
+            "get": {
+                "description": "Retrieves all the necessary data required by clients for encrypting any message.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Provides data necessary to allow encryption.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ethereum address associated with the identity. If you are registering the identity yourself, pass the address of the account making the registration. If you want the API to register the identity, pass the address TBD.",
+                        "name": "address",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional identity prefix. You can generate it on your end and pass it to this endpoint, or allow the API to randomly generate one for you.",
+                        "name": "identityPrefix",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success.",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.GetDataForEncryptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Get data for encryption request.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_decryption_key": {
+            "get": {
+                "description": "Retrieves a decryption key for a given registered identity once the timestamp is reached. Decryption key is 0x padded, clients need to remove the prefix when decrypting on thier end.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Get decryption key.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Identity associated with the decryption key.",
+                        "name": "identity",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success.",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.GetDecryptionKeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Get decryption key request.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "404": {
+                        "description": "Decryption key not found for the associated identity.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
+        },
+        "/register_identity": {
+            "post": {
+                "description": "Allows clients to register an identity used for encryption and specify a release timestamp for the decryption key associated with the encrypted message.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crypto"
+                ],
+                "summary": "Allows clients to register any identity.",
+                "parameters": [
+                    {
+                        "description": "Timestamp and Identity which client want to make the registration with.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.RegisterIdentityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success.",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.RegisterIdentityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Register identity request.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "schema": {
+                            "$ref": "#/definitions/error.Http"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "error.Http": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.RegisterIdentityRequest": {
+            "type": "object",
+            "properties": {
+                "decryptionTimestamp": {
+                    "type": "integer",
+                    "example": 1735044061
+                },
+                "identityPrefix": {
+                    "type": "string",
+                    "example": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+                }
+            }
+        },
+        "usecase.GetDataForEncryptionResponse": {
+            "type": "object",
+            "properties": {
+                "eon": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "eon_key": {
+                    "type": "string",
+                    "example": "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255"
+                },
+                "identity": {
+                    "type": "string",
+                    "example": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+                },
+                "identity_prefix": {
+                    "type": "string",
+                    "example": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+                }
+            }
+        },
+        "usecase.GetDecryptionKeyResponse": {
+            "type": "object",
+            "properties": {
+                "decryption_key": {
+                    "type": "string",
+                    "example": "0x99a805fc26812c13041126b25e91eccf3de464d1df7a95d1edca8831a9ec02dd"
+                },
+                "decryption_timestamp": {
+                    "type": "integer",
+                    "example": 1735044061
+                },
+                "identity": {
+                    "type": "string",
+                    "example": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+                }
+            }
+        },
+        "usecase.RegisterIdentityResponse": {
+            "type": "object",
+            "properties": {
+                "eon": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "eon_key": {
+                    "type": "string",
+                    "example": "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255"
+                },
+                "identity": {
+                    "type": "string",
+                    "example": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+                },
+                "identity_prefix": {
+                    "type": "string",
+                    "example": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+                },
+                "tx_hash": {
+                    "type": "string",
+                    "example": "0x3026ad202ca611551377eef069fb6ed894eae65329ce73c56f300129694f12ba"
+                }
+            }
+        }
+    }
+}
