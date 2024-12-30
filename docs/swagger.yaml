@@ -62,8 +62,14 @@ definitions:
       statusCode:
         type: integer
     type: object
+host: TBD
 info:
   contact: {}
+  description: Shutter Service API is an encryption and decryption service that allows
+    clients to register decryption triggers for specific encrypted messages. These
+    triggers are invoked at a future time, eventually releasing the keys needed to
+    decrypt the messages. Clients can specify the exact timestamp at which the trigger
+    should release the decryption keys.
   title: Shutter service API
 paths:
   /decrypt_commitment:
