@@ -62,7 +62,6 @@ definitions:
       statusCode:
         type: integer
     type: object
-host: TBD
 info:
   contact: {}
   description: Shutter Service API is an encryption and decryption service that allows
