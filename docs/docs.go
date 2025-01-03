@@ -95,7 +95,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success.",
                         "schema": {
-                            "$ref": "#/definitions/usecase.GetDataForEncryptionResponse"
+                            "$ref": "#/definitions/GetDataForEncryption"
                         }
                     },
                     "400": {
@@ -136,7 +136,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success.",
                         "schema": {
-                            "$ref": "#/definitions/usecase.GetDecryptionKeyResponse"
+                            "$ref": "#/definitions/GetDecryptionKey"
                         }
                     },
                     "400": {
@@ -177,7 +177,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.RegisterIdentityRequest"
+                            "$ref": "#/definitions/RegisterIdentityRequest"
                         }
                     }
                 ],
@@ -185,7 +185,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success.",
                         "schema": {
-                            "$ref": "#/definitions/usecase.RegisterIdentityResponse"
+                            "$ref": "#/definitions/RegisterIdentityResponse"
                         }
                     },
                     "400": {
@@ -205,34 +205,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "error.Http": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "string"
-                },
-                "statusCode": {
-                    "type": "integer"
-                }
-            }
-        },
-        "service.RegisterIdentityRequest": {
-            "type": "object",
-            "properties": {
-                "decryptionTimestamp": {
-                    "type": "integer",
-                    "example": 1735044061
-                },
-                "identityPrefix": {
-                    "type": "string",
-                    "example": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
-                }
-            }
-        },
-        "usecase.GetDataForEncryptionResponse": {
+        "GetDataForEncryption": {
             "type": "object",
             "properties": {
                 "eon": {
@@ -253,7 +226,7 @@ const docTemplate = `{
                 }
             }
         },
-        "usecase.GetDecryptionKeyResponse": {
+        "GetDecryptionKey": {
             "type": "object",
             "properties": {
                 "decryption_key": {
@@ -270,7 +243,20 @@ const docTemplate = `{
                 }
             }
         },
-        "usecase.RegisterIdentityResponse": {
+        "RegisterIdentityRequest": {
+            "type": "object",
+            "properties": {
+                "decryptionTimestamp": {
+                    "type": "integer",
+                    "example": 1735044061
+                },
+                "identityPrefix": {
+                    "type": "string",
+                    "example": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+                }
+            }
+        },
+        "RegisterIdentityResponse": {
             "type": "object",
             "properties": {
                 "eon": {
@@ -294,6 +280,20 @@ const docTemplate = `{
                     "example": "0x3026ad202ca611551377eef069fb6ed894eae65329ce73c56f300129694f12ba"
                 }
             }
+        },
+        "error.Http": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
         }
     }
 }`
@@ -305,7 +305,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Shutter service API",
-	Description:      "",
+	Description:      "Shutter Service API is an encryption and decryption service that allows clients to register decryption triggers for specific encrypted messages. These triggers are invoked at a future time, eventually releasing the keys needed to decrypt the messages. Clients can specify the exact timestamp at which the trigger should release the decryption keys.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
