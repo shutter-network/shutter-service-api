@@ -74,7 +74,12 @@ The Shutter system uses threshold encryption and distributed cryptographic opera
 
 ## Swagger Documentation
 
-For detailed API specifications, including parameters, responses, and error codes, visit the Swagger Documentation.
+## Swagger Documentation
+
+For detailed API specifications, including parameters, responses, and error codes, visit the Swagger Documentation:
+
+- [Chiado Swagger Documentation](http://64.227.118.171:8001/docs/index.html)
+- **Mainnet**: Documentation link TBD
 
 ## Support
 
