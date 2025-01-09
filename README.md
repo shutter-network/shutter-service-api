@@ -104,6 +104,77 @@ curl -X GET "http://<API_BASE_URL>/get_data_for_encryption?address=0xb9C303443c9
 }
 ```
 
+#### Encrypting Commitments in Go
+
+The following Go code demonstrates how to use the encryption data retrieved from the Shutter API to encrypt commitments:
+
+```go
+// NOTE: This example requires the "github.com/shutter-network/shutter/shlib/shcrypto" package.
+// Make sure to install it in your Go environment before running this code.
+package main
+
+import (
+  "crypto/rand"
+  "encoding/hex"
+  "fmt"
+  "log"
+  "strings"
+
+  "github.com/shutter-network/shutter/shlib/shcrypto"
+)
+
+func main() {
+  // Encryption data provided by the Shutter API
+  identityHex := "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+  eonPublicKeyHex := "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255"
+  message := []byte("please hide this message")
+
+  identityHex = strings.TrimPrefix(identityHex, "0x")
+  eonPublicKeyHex = strings.TrimPrefix(eonPublicKeyHex, "0x")
+
+  // Convert hex strings to bytes
+  identity, err := hex.DecodeString(identityHex)
+  if err != nil {
+    log.Fatalf("Failed to decode identity: %v", err)
+  }
+
+  eonPublicKeyBytes, err := hex.DecodeString(eonPublicKeyHex)
+  if err != nil {
+    log.Fatalf("Failed to decode eon public key: %v", err)
+  }
+
+  // Create EonPublicKey struct from bytes
+  eonPublicKey := &shcrypto.EonPublicKey{}
+  if err := eonPublicKey.Unmarshal(eonPublicKeyBytes); err != nil {
+    log.Fatalf("Failed to unmarshal EonPublicKey: %v", err)
+  }
+
+  // Compute the Epoch ID from the identity
+  epochID := shcrypto.ComputeEpochID(identity)
+
+  // Generate a random sigma
+  sigma, err := shcrypto.RandomSigma(rand.Reader)
+  if err != nil {
+    log.Fatalf("Failed to generate random sigma: %v", err)
+  }
+
+  // Encrypt the message
+  encryptedCommitment := shcrypto.Encrypt(message, eonPublicKey, epochID, sigma)
+
+  // Marshal the encrypted commitment into bytes
+  encryptedCommitmentBytes := encryptedCommitment.Marshal()
+
+  // Convert to hex string
+  encryptedCommitmentHex := "0x" + hex.EncodeToString(encryptedCommitmentBytes)
+
+  // Print the encrypted commitment
+  fmt.Printf("Encrypted Commitment: %s\n", encryptedCommitmentHex)
+}
+```
+
+You can also translate the code into JavaScript if you prefer to use the JavaScript SDK:
+[Shutter JavaScript SDK on npm](https://www.npmjs.com/package/@shutter-network/shutter-crypto)
+
 ### 3. Retrieve the Decryption Key
 
 After the decryption trigger conditions are met (i.e., the specified timestamp has passed), retrieve the decryption key using the `/get_decryption_key` endpoint.
@@ -143,7 +214,6 @@ curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f95725
 ```
 
 > **Note**: Replace `<API_BASE_URL>` in all example requests with the actual base URL for the API, found in the pre-requisite section, such as `http://64.227.118.171:8001/api`.
-
 
 ## Advanced Features
 
