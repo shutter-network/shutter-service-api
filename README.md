@@ -3,7 +3,6 @@
 Welcome to the **Shutter API** documentation! This guide will help you integrate Shutter's Commit and Reveal Scheme into your decentralized application (dApp). The Shutter system provides a secure, decentralized, and tamper-proof commit-and-reveal workflow, ensuring integrity and confidentiality in your application.
 
 ---
-
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -13,10 +12,10 @@ Welcome to the **Shutter API** documentation! This guide will help you integrate
   - [Retrieve the Encryption Data](#2-retrieve-the-encryption-data)
   - [Retrieve the Decryption Key](#3-retrieve-the-decryption-key)
   - [Decrypt Commitments](#4-decrypt-commitments)
-4. [Examples](#examples)
-5. [FAQ](#faq)
-6. [Support](#support)
-
+4. [Future features](#future-features)
+5. [FAQs](#faqs)
+6. [Swagger Documentation](#swagger-documentation)
+7. [Support](#support)
 
 ---
 
@@ -215,7 +214,7 @@ curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f95725
 
 > **Note**: Replace `<API_BASE_URL>` in all example requests with the actual base URL for the API, found in the pre-requisite section, such as `http://64.227.118.171:8001/api`.
 
-## Advanced Features
+## Future Features
 
 - **Event-Based and Block-Based Triggers**  
   Future versions of the Shutter system will support event-based and block-based decryption triggers for enhanced functionality.
