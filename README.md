@@ -46,6 +46,9 @@ This documentation will guide you through:
   - **Chiado Address**: `0x43D1Aee2D61fb206b72c6bDd8a0F17Eb6BF1eF51`
   - **Gnosis Address**: TBD
 
+- **Address of the API**:
+  - **Chiado Address**: TBD
+  - **Gnosis Address**: TBD
 ---
 
 ## Endpoints
@@ -88,7 +91,7 @@ Refer to the Swagger documentation for specifics on this endpoint.
 
 #### Example Request
 ```bash
-curl -X GET "http://<API_BASE_URL>/get_data_for_encryption?address=0x123456789abcdef&identityPrefix=0xabcdefabcdefabcdefabcdefabcdef"
+curl -X GET "http://<API_BASE_URL>/get_data_for_encryption?address=0xb9C303443c9af84777e60D5C987AbF0c43844918&identityPrefix=0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
 ```
 
 #### Example Response
