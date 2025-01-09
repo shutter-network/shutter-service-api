@@ -203,13 +203,13 @@ Refer to the Swagger documentation for endpoint details.
 
 #### Example Request
 ```bash
-curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75&encryptedCommitment=0xabcdefabcdefabcdefabcdefabcdefabcdef"
+curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75&encryptedCommitment=0x03b5685a460a95ba628e04b24155d6722f7c4e376a1627f714a4ae9cecd2982e005eff12ac8150b8842c29f8d5eaf4d0da0b626f762b4826d779d8969b577acb28df96cab026aa57c00cd74b07ca51e8c0c1a59933e29a728311900ebfc26c6804260914c96cb10dbd6d2ed3f6cb77788a74b5aae5f4ce6f40be53310a0524d42d5a6f03b5c1517ec097553733e228276fcdfc4b569f7ef4311a461d68819d634c"
 ```
 
 #### Example Response
 ```json
 {
-  "decrypted_message": "0x123456789abcdef123456789abcdef"
+  "decrypted_message": "please hide this message"
 }
 ```
 
