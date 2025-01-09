@@ -1,6 +1,24 @@
 # Shutter API Documentation for dApp Developers
 
-Welcome to the Shutter API documentation! This guide will help you integrate Shutter's Commit and Reveal Scheme into your decentralized application (dApp). The Shutter system provides a secure, decentralized, and tamper-proof commit-and-reveal workflow, ensuring integrity and confidentiality in your application.
+Welcome to the **Shutter API** documentation! This guide will help you integrate Shutter's Commit and Reveal Scheme into your decentralized application (dApp). The Shutter system provides a secure, decentralized, and tamper-proof commit-and-reveal workflow, ensuring integrity and confidentiality in your application.
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Endpoints](#endpoints)
+  - [Register an Identity with a Decryption Trigger](#1-register-an-identity-with-a-decryption-trigger)
+  - [Retrieve the Encryption Data](#2-retrieve-the-encryption-data)
+  - [Retrieve the Decryption Key](#3-retrieve-the-decryption-key)
+  - [Decrypt Commitments](#4-decrypt-commitments)
+4. [Examples](#examples)
+5. [FAQ](#faq)
+6. [Support](#support)
+
+
+---
 
 ## Overview
 
@@ -14,7 +32,8 @@ This documentation will guide you through:
 - Setting up identities and time-based decryption triggers.
 - Retrieving encryption data and decryption keys.
 - Decrypting encrypted commitments.
-- Links to detailed Swagger API documentation for implementation specifics.
+
+---
 
 ## Prerequisites
 
@@ -27,7 +46,9 @@ This documentation will guide you through:
   - **Chiado Address**: `0x43D1Aee2D61fb206b72c6bDd8a0F17Eb6BF1eF51`
   - **Gnosis Address**: TBD
 
-## Getting Started
+---
+
+## Endpoints
 
 ### 1. Register an Identity with a Decryption Trigger
 
@@ -38,11 +59,47 @@ Refer to the `/register_identity` endpoint in the Swagger documentation for deta
 > **Note**: When registering identities through our API, the API account address is used to compute the identity that will be returned. If you want to use your own address, you need to submit the registration directly to the registry contract. The contract's definition can be found here:  
 > [ShutterRegistry.sol](https://github.com/shutter-network/contracts/blob/main/src/shutter-service/ShutterRegistry.sol#L1C1-L86C2).
 
-### 2. Retrieve the Encryption Key
+#### Example Request
+```bash
+curl -X POST http://<API_BASE_URL>/register_identity \
+-H "Content-Type: application/json" \
+-d '{
+  "decryptionTimestamp": 1735044061,
+  "identityPrefix": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+}'
+```
+
+#### Example Response
+```json
+{
+  "eon": 1,
+  "eon_key": "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255",
+  "identity": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75",
+  "identity_prefix": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0",
+  "tx_hash": "0x3026ad202ca611551377eef069fb6ed894eae65329ce73c56f300129694f12ba"
+}
+```
+
+### 2. Retrieve the Encryption Data
 
 To encrypt commitments, obtain the encryption data associated with your identity. Use the `/get_data_for_encryption` endpoint to retrieve all necessary encryption data.
 
 Refer to the Swagger documentation for specifics on this endpoint.
+
+#### Example Request
+```bash
+curl -X GET "http://<API_BASE_URL>/get_data_for_encryption?address=0x123456789abcdef&identityPrefix=0xabcdefabcdefabcdefabcdefabcdef"
+```
+
+#### Example Response
+```json
+{
+"eon": 1,
+"eon_key": "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255",
+"identity": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75",
+"identity_prefix": "0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+}
+```
 
 ### 3. Retrieve the Decryption Key
 
@@ -50,11 +107,40 @@ After the decryption trigger conditions are met (i.e., the specified timestamp h
 
 Refer to the Swagger documentation for detailed usage.
 
+#### Example Request
+```bash
+curl -X GET "http://<API_BASE_URL>/get_decryption_key?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+```
+
+#### Example Response
+```json
+{
+  "decryption_key": "0x99a805fc26812c13041126b25e91eccf3de464d1df7a95d1edca8831a9ec02dd",
+  "decryption_timestamp": 1735044061,
+  "identity": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+}
+```
+
 ### 4. Decrypt Commitments
 
 Once you have the decryption key, use it to decrypt commitments encrypted with the Shutter system. The `/decrypt_commitment` endpoint enables this process.
 
 Refer to the Swagger documentation for endpoint details.
+
+#### Example Request
+```bash
+curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75&encryptedCommitment=0xabcdefabcdefabcdefabcdefabcdefabcdef"
+```
+
+#### Example Response
+```json
+{
+  "decrypted_message": "0x123456789abcdef123456789abcdef"
+}
+```
+
+> **Note**: Replace `<API_BASE_URL>` in all example requests with the actual base URL for the API, found in the pre-requisite section, such as `http://64.227.118.171:8001/api`.
+
 
 ## Advanced Features
 
@@ -71,8 +157,6 @@ The keyper set is designed to handle downtime gracefully. Any missed decryption 
 
 ### How secure is the Shutter system?
 The Shutter system uses threshold encryption and distributed cryptographic operations to ensure that no single entity can compromise the security of commitments.
-
-## Swagger Documentation
 
 ## Swagger Documentation
 
