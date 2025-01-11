@@ -468,7 +468,7 @@ func (uc *CryptoUsecase) DecryptCommitment(ctx context.Context, encryptedCommitm
 		)
 		return nil, &err
 	}
-	encryptedCommitmentBytes, err := hex.DecodeString(encryptedCommitment)
+	encryptedCommitmentBytes, err := hex.DecodeString(strings.TrimPrefix(encryptedCommitment, "0x"))
 	if err != nil {
 		log.Err(err).Msg("err encountered while decoding encrypted commitment")
 		err := httpError.NewHttpError(

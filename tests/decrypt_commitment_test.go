@@ -78,7 +78,7 @@ func (s *TestShutterService) TestDecryptionCommitment() {
 	s.Require().NoError(err)
 
 	identityStringified := hex.EncodeToString(identity)
-	encryptedCommitmentStringified := hex.EncodeToString(encrypedCommitmentBytes)
+	encryptedCommitmentStringified := "0x" + hex.EncodeToString(encrypedCommitmentBytes)
 	decryptedCommitment, err := s.cryptoUsecase.DecryptCommitment(ctx, encryptedCommitmentStringified, identityStringified)
 	s.Require().Nil(err)
 	s.Require().Equal(decryptedCommitment, msg)
