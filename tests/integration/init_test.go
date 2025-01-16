@@ -34,7 +34,7 @@ type TestShutterService struct {
 func (s *TestShutterService) SetupSuite() {
 	ctx := context.Background()
 	var err error
-	dbURL := database.GetDBURL()
+	dbURL := os.Getenv("DB_URL")
 	s.db, err = database.NewDB(ctx, dbURL)
 	s.Require().NoError(err)
 
