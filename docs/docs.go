@@ -216,6 +216,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "0x57af5437a84ef50e5ed75772c18ae38b168bb07c50cadb65fc6136604e662255"
                 },
+                "epoch_id": {
+                    "type": "string",
+                    "example": "0x88f2495d1240f9c5523db589996a50a4984ee7a08a8a8f4b269e4345b383310abd2dc1cd9c9c2b8718ed3f486d5242f5"
+                },
                 "identity": {
                     "type": "string",
                     "example": "0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
