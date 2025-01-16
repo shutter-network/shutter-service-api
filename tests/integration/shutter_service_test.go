@@ -2,27 +2,32 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"testing"
 	"time"
-
-	httpError "github.com/shutter-network/shutter-service-api/internal/error"
-	"github.com/shutter-network/shutter/shlib/shcrypto"
 
 	cryptorand "crypto/rand"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	httpError "github.com/shutter-network/shutter-service-api/internal/error"
 	"github.com/shutter-network/shutter-service-api/internal/service"
 	"github.com/shutter-network/shutter-service-api/internal/usecase"
+	"github.com/shutter-network/shutter/shlib/shcrypto"
 )
 
 var msg = []byte("please hide this message")
 
 func (s *TestShutterService) TestRequestDecryptionKeyBeforeTimestampReached() {
+	if testing.Short() {
+		s.T().Skip("skipping integration test")
+	}
 	address := crypto.PubkeyToAddress(*s.config.PublicKey).Hex()
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
@@ -71,6 +76,8 @@ func (s *TestShutterService) TestRequestDecryptionKeyBeforeTimestampReached() {
 	s.router.ServeHTTP(recorder, req)
 	s.Require().Equal(http.StatusOK, recorder.Code)
 
+	time.Sleep(30 * time.Second)
+
 	query = fmt.Sprintf("?identity=%s", identityStringified)
 	url = "/api/get_decryption_key" + query
 
@@ -90,6 +97,10 @@ func (s *TestShutterService) TestRequestDecryptionKeyBeforeTimestampReached() {
 }
 
 func (s *TestShutterService) TestRequestDecryptionKeyAfterTimestampReached() {
+	if testing.Short() {
+		s.T().Skip("skipping integration test")
+	}
+	ctx := context.Background()
 	address := crypto.PubkeyToAddress(*s.config.PublicKey).Hex()
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
@@ -116,26 +127,27 @@ func (s *TestShutterService) TestRequestDecryptionKeyAfterTimestampReached() {
 	s.Require().NotNil(res.Identity)
 	s.Require().NotNil(res.IdentityPrefix)
 
-	identityStringified := res.Identity
-
-	identityBytes, err := hex.DecodeString(res.Identity)
+	identityBytes, err := hex.DecodeString(strings.TrimPrefix(res.Identity, "0x"))
 	s.Require().NoError(err)
 
-	eonKeyBytes, err := hex.DecodeString(res.EonKey)
+	eonKeyBytes, err := hex.DecodeString(strings.TrimPrefix(res.EonKey, "0x"))
 	s.Require().NoError(err)
 
-	var identity *shcrypto.EpochID
-	identity.Unmarshal(identityBytes)
+	epochID := shcrypto.ComputeEpochID(identityBytes)
 
-	var eonPublicKey *shcrypto.EonPublicKey
-	eonPublicKey.Unmarshal(eonKeyBytes)
+	eonPublicKey := &shcrypto.EonPublicKey{}
+	err = eonPublicKey.Unmarshal(eonKeyBytes)
+	s.Require().NoError(err)
 
 	sigma, err := shcrypto.RandomSigma(cryptorand.Reader)
 	s.Require().NoError(err)
 
-	encryptedTransaction := shcrypto.Encrypt(msg, eonPublicKey, identity, sigma)
+	encryptedMessage := shcrypto.Encrypt(msg, eonPublicKey, epochID, sigma)
 
-	decryptionTimestamp := time.Now().Add(2 * time.Second).Unix()
+	block, err := s.ethClient.BlockByNumber(ctx, nil)
+	s.Require().NoError(err)
+
+	decryptionTimestamp := block.Header().Time + 10
 	reqBody := service.RegisterIdentityRequest{
 		DecryptionTimestamp: uint64(decryptionTimestamp),
 		IdentityPrefix:      identityPrefixStringified,
@@ -155,9 +167,9 @@ func (s *TestShutterService) TestRequestDecryptionKeyAfterTimestampReached() {
 	s.router.ServeHTTP(recorder, req)
 	s.Require().Equal(http.StatusOK, recorder.Code)
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(30 * time.Second)
 
-	query = fmt.Sprintf("?identity=%s", identityStringified)
+	query = fmt.Sprintf("?identity=%s", res.Identity)
 	url = "/api/get_decryption_key" + query
 
 	recorder = httptest.NewRecorder()
@@ -175,18 +187,21 @@ func (s *TestShutterService) TestRequestDecryptionKeyAfterTimestampReached() {
 	decryptionKeyStringified := decryptionKeyResponse["message"].DecryptionKey
 	s.Require().NotEmpty(decryptionKeyStringified)
 
-	var decryptionKey *shcrypto.EpochSecretKey
-	decryptionKeyBytes, err := hex.DecodeString(decryptionKeyStringified)
+	decryptionKey := &shcrypto.EpochSecretKey{}
+	decryptionKeyBytes, err := hex.DecodeString(strings.TrimPrefix(decryptionKeyStringified, "0x"))
 	s.Require().NoError(err)
 	err = decryptionKey.Unmarshal(decryptionKeyBytes)
 	s.Require().NoError(err)
 
-	decryptedMessage, err := encryptedTransaction.Decrypt(decryptionKey)
+	decryptedMessage, err := encryptedMessage.Decrypt(decryptionKey)
 	s.Require().NoError(err)
 	s.Require().Equal(msg, decryptedMessage)
 }
 
 func (s *TestShutterService) TestRequestDecryptionKeyForUnregisteredIdentity() {
+	if testing.Short() {
+		s.T().Skip("skipping integration test")
+	}
 	address := crypto.PubkeyToAddress(*s.config.PublicKey).Hex()
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
@@ -213,9 +228,7 @@ func (s *TestShutterService) TestRequestDecryptionKeyForUnregisteredIdentity() {
 	s.Require().NotNil(res.Identity)
 	s.Require().NotNil(res.IdentityPrefix)
 
-	identityStringified := res.Identity
-
-	query = fmt.Sprintf("?identity=%s", identityStringified)
+	query = fmt.Sprintf("?identity=%s", res.Identity)
 	url = "/api/get_decryption_key" + query
 
 	recorder = httptest.NewRecorder()
@@ -234,6 +247,10 @@ func (s *TestShutterService) TestRequestDecryptionKeyForUnregisteredIdentity() {
 }
 
 func (s *TestShutterService) TestRequestDecryptCommitmentAfterTimestampReached() {
+	if testing.Short() {
+		s.T().Skip("skipping integration test")
+	}
+	ctx := context.Background()
 	address := crypto.PubkeyToAddress(*s.config.PublicKey).Hex()
 	identityPrefix, err := generateRandomBytes(32)
 	s.Require().NoError(err)
@@ -260,28 +277,27 @@ func (s *TestShutterService) TestRequestDecryptCommitmentAfterTimestampReached()
 	s.Require().NotNil(res.Identity)
 	s.Require().NotNil(res.IdentityPrefix)
 
-	identityStringified := res.Identity
-
-	identityBytes, err := hex.DecodeString(res.Identity)
+	identityBytes, err := hex.DecodeString(strings.TrimPrefix(res.Identity, "0x"))
 	s.Require().NoError(err)
 
-	eonKeyBytes, err := hex.DecodeString(res.EonKey)
+	eonKeyBytes, err := hex.DecodeString(strings.TrimPrefix(res.EonKey, "0x"))
 	s.Require().NoError(err)
 
-	var identity *shcrypto.EpochID
-	identity.Unmarshal(identityBytes)
+	epochID := shcrypto.ComputeEpochID(identityBytes)
 
-	var eonPublicKey *shcrypto.EonPublicKey
+	eonPublicKey := &shcrypto.EonPublicKey{}
 	eonPublicKey.Unmarshal(eonKeyBytes)
 
 	sigma, err := shcrypto.RandomSigma(cryptorand.Reader)
 	s.Require().NoError(err)
 
-	encryptedCommitment := shcrypto.Encrypt(msg, eonPublicKey, identity, sigma)
+	encryptedCommitment := shcrypto.Encrypt(msg, eonPublicKey, epochID, sigma)
 	encrypedCommitmentBytes := encryptedCommitment.Marshal()
 	encryptedCommitmentStringified := hex.EncodeToString(encrypedCommitmentBytes)
 
-	decryptionTimestamp := time.Now().Add(2 * time.Second).Unix()
+	block, err := s.ethClient.BlockByNumber(ctx, nil)
+	s.Require().NoError(err)
+	decryptionTimestamp := block.Header().Time + 10
 	reqBody := service.RegisterIdentityRequest{
 		DecryptionTimestamp: uint64(decryptionTimestamp),
 		IdentityPrefix:      identityPrefixStringified,
@@ -301,9 +317,9 @@ func (s *TestShutterService) TestRequestDecryptCommitmentAfterTimestampReached()
 	s.router.ServeHTTP(recorder, req)
 	s.Require().Equal(http.StatusOK, recorder.Code)
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(30 * time.Second)
 
-	query = fmt.Sprintf("?identity=%s&encryptedCommitment=%s", identityStringified, encryptedCommitmentStringified)
+	query = fmt.Sprintf("?identity=%s&encryptedCommitment=%s", res.Identity, encryptedCommitmentStringified)
 	url = "/api/decrypt_commitment" + query
 
 	recorder = httptest.NewRecorder()
@@ -318,15 +334,8 @@ func (s *TestShutterService) TestRequestDecryptCommitmentAfterTimestampReached()
 	err = json.Unmarshal(body, &decryptionKeyResponse)
 	s.Require().NoError(err)
 
-	decryptionKeyBytes := decryptionKeyResponse["message"]
+	decryptedMessage := decryptionKeyResponse["message"]
 
-	s.Require().NotEmpty(decryptionKeyBytes)
-
-	var decryptionKey *shcrypto.EpochSecretKey
-	err = decryptionKey.Unmarshal(decryptionKeyBytes)
-	s.Require().NoError(err)
-
-	decryptedMessage, err := encryptedCommitment.Decrypt(decryptionKey)
-	s.Require().NoError(err)
+	s.Require().NotEmpty(decryptedMessage)
 	s.Require().Equal(msg, decryptedMessage)
 }
