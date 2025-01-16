@@ -81,12 +81,11 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	s.Require().NoError(err)
 	identityPrefixStringified := hex.EncodeToString(identityPrefix)
 	identity := common.ComputeIdentity(identityPrefix, ethCommon.HexToAddress(sender))
-
 	blockNumber := rand.Uint64()
 
 	eon := rand.Uint64()
 
-	eonPublicKey, _, _ := s.makeKeys(identity)
+	eonPublicKey, _, epochID := s.makeKeys(identity)
 
 	s.ethClient.
 		On("BlockNumber", ctx).
@@ -110,6 +109,7 @@ func (s *TestShutterService) TestGetDataForEncryption() {
 	s.Require().Equal(common.PrefixWith0x(hex.EncodeToString(identity)), data.Identity)
 	s.Require().Equal(common.PrefixWith0x(hex.EncodeToString(identityPrefix)), data.IdentityPrefix)
 	s.Require().Equal(data.EonKey, common.PrefixWith0x(hex.EncodeToString(eonPublicKey.Marshal())))
+	s.Require().Equal(common.PrefixWith0x(hex.EncodeToString(epochID.Marshal())), data.EpochID)
 }
 
 func (s *TestShutterService) TestGetDataForEncryptionInvalidSender() {
