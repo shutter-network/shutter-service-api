@@ -4,9 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       DB_HOST:
       DB_PORT:
@@ -24,6 +21,28 @@ services:
     ports:
       - "8001:8001"
     command: ["./shutter-service-api"]
+    networks:
+      - shutter-keyper-deployment_default
+    labels:
+      caddy: "${SERVICE_DOMAIN_NAME}"
+      caddy.@browser: "method GET"
+      caddy.redir: "@browser https://blog.shutter.network/shutterized-gnosis-chain-is-now-live/"
+      caddy.reverse_proxy: "{{ upstreams 8001 }}"
+      caddy.header.Access-Control-Allow-Origin: "*"
+      caddy.header.Access-Control-Allow-Methods: "GET, POST, OPTIONS"
+      caddy.header.Access-Control-Allow-Headers: "Content-Type, Authorization"
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:latest
+    restart: always
+    volumes:
+      - ${DATA_DIR:-./data}/caddy:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      caddy.email: "devops@brainbot.com"
 
 networks:
   shutter-keyper-deployment_default:
