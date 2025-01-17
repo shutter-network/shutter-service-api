@@ -24,4 +24,7 @@ services:
     ports:
       - "8001:8001"
     command: ["./shutter-service-api"]
-    
+
+networks:
+  shutter-keyper-deployment_default:
+    external: true
