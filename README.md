@@ -209,9 +209,11 @@ curl -X GET "https://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f9572
 #### Example Response
 ```json
 {
-  "decrypted_message": "please hide this message"
+  "decrypted_message": "0x706c6561736520686964652074686973206d657373616765"
 }
 ```
+
+The decrypted message is returned in its hex format. To get the initial message, convert the decrypted message to string.
 
 > **Note**: Replace `<API_BASE_URL>` in all example requests with the actual base URL for the API, found in the pre-requisite section, such as `https://shutter.api.staging.shutter.network/api`.
 
