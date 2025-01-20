@@ -38,16 +38,16 @@ This documentation will guide you through:
 
 - **API Access to the Shutter Centralized Service**:  
   At the moment, the access is free of charge. You only need to query the API endpoints at the addresses below:
-  - **Chiado**: `http://64.227.118.171:8001/api/[ADD_ENDPOINT]`
-  - **Mainnet**: TBD
+  - **Chiado**: TBD
+  - **Mainnet**: `https://shutter.api.staging.shutter.network/api/[ADD_ENDPOINT]`
 
 - **Address of the Shutter Registry Contract**:
-  - **Chiado Address**: `0x43D1Aee2D61fb206b72c6bDd8a0F17Eb6BF1eF51`
-  - **Gnosis Address**: TBD
+  - **Chiado Address**: TBD
+  - **Gnosis Address**: `0x7D18359c2f49e4aEBc0df761B1152c31DE044e83`
 
 - **Address of the API**:
   - **Chiado Address**: TBD
-  - **Gnosis Address**: TBD
+  - **Gnosis Address**: `0x228DefCF37Da29475F0EE2B9E4dfAeDc3b0746bc`
 ---
 
 ## Endpoints
@@ -235,8 +235,8 @@ The Shutter system uses threshold encryption and distributed cryptographic opera
 
 For detailed API specifications, including parameters, responses, and error codes, visit the Swagger Documentation:
 
-- [Chiado Swagger Documentation](http://64.227.118.171:8001/docs/index.html)
-- **Mainnet**: Documentation link TBD
+- Chiado Swagger Documentation TBD
+- [Mainnet Swagger Documentation](https://shutter.api.staging.shutter.network/docs/index.html)
 
 ## Support
 
