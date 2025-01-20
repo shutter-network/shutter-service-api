@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shutter-network/shutter-service-api/common"
@@ -19,6 +20,7 @@ func NewRouter(
 	config *common.Config,
 ) *gin.Engine {
 	router := gin.New()
+	router.Use(cors.Default())
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(middleware.ErrorHandler())
