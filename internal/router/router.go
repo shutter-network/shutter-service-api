@@ -20,9 +20,9 @@ func NewRouter(
 	config *common.Config,
 ) *gin.Engine {
 	router := gin.New()
-	router.Use(cors.Default())
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(cors.Default())
 	router.Use(middleware.ErrorHandler())
 
 	cryptoService := service.NewCryptoService(db, contract, ethClient, config)
