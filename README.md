@@ -63,7 +63,7 @@ Refer to the `/register_identity` endpoint in the Swagger documentation for deta
 
 #### Example Request
 ```bash
-curl -X POST http://<API_BASE_URL>/register_identity \
+curl -X POST https://<API_BASE_URL>/register_identity \
 -H "Content-Type: application/json" \
 -d '{
   "decryptionTimestamp": 1735044061,
@@ -90,7 +90,7 @@ Refer to the Swagger documentation for specifics on this endpoint.
 
 #### Example Request
 ```bash
-curl -X GET "http://<API_BASE_URL>/get_data_for_encryption?address=0xb9C303443c9af84777e60D5C987AbF0c43844918&identityPrefix=0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
+curl -X GET "https://<API_BASE_URL>/get_data_for_encryption?address=0xb9C303443c9af84777e60D5C987AbF0c43844918&identityPrefix=0x79bc8f6b4fcb02c651d6a702b7ad965c7fca19e94a9646d21ae90c8b54c030a0"
 ```
 
 #### Example Response
@@ -183,7 +183,7 @@ Refer to the Swagger documentation for detailed usage.
 
 #### Example Request
 ```bash
-curl -X GET "http://<API_BASE_URL>/get_decryption_key?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
+curl -X GET "https://<API_BASE_URL>/get_decryption_key?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75"
 ```
 
 #### Example Response
@@ -203,7 +203,7 @@ Refer to the Swagger documentation for endpoint details.
 
 #### Example Request
 ```bash
-curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75&encryptedCommitment=0x03b5685a460a95ba628e04b24155d6722f7c4e376a1627f714a4ae9cecd2982e005eff12ac8150b8842c29f8d5eaf4d0da0b626f762b4826d779d8969b577acb28df96cab026aa57c00cd74b07ca51e8c0c1a59933e29a728311900ebfc26c6804260914c96cb10dbd6d2ed3f6cb77788a74b5aae5f4ce6f40be53310a0524d42d5a6f03b5c1517ec097553733e228276fcdfc4b569f7ef4311a461d68819d634c"
+curl -X GET "https://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f957259e9d6b68301d529e9851b8642874c8f59d2bd0fb84a570c75&encryptedCommitment=0x03b5685a460a95ba628e04b24155d6722f7c4e376a1627f714a4ae9cecd2982e005eff12ac8150b8842c29f8d5eaf4d0da0b626f762b4826d779d8969b577acb28df96cab026aa57c00cd74b07ca51e8c0c1a59933e29a728311900ebfc26c6804260914c96cb10dbd6d2ed3f6cb77788a74b5aae5f4ce6f40be53310a0524d42d5a6f03b5c1517ec097553733e228276fcdfc4b569f7ef4311a461d68819d634c"
 ```
 
 #### Example Response
@@ -213,7 +213,7 @@ curl -X GET "http://<API_BASE_URL>/decrypt_commitment?identity=0x8c232eae4f95725
 }
 ```
 
-> **Note**: Replace `<API_BASE_URL>` in all example requests with the actual base URL for the API, found in the pre-requisite section, such as `http://64.227.118.171:8001/api`.
+> **Note**: Replace `<API_BASE_URL>` in all example requests with the actual base URL for the API, found in the pre-requisite section, such as `https://shutter.api.staging.shutter.network/api`.
 
 ## Future Features
 
