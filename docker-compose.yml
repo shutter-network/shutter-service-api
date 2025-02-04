@@ -23,6 +23,7 @@ services:
     command: ["./shutter-service-api"]
     networks:
       - shutter-keyper-deployment_default
+      - default
     labels:
       caddy: "${SERVICE_DOMAIN_NAME}"
       caddy.@browser: "method GET"
