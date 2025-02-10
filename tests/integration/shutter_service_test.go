@@ -403,3 +403,110 @@ func (s *TestShutterService) TestRegisterIdentityInThePast() {
 
 	s.Require().Equal(errorResponse.Description, "decryption timestamp should be in future")
 }
+
+func (s *TestShutterService) TestBulkRequestDecryptionKeyAfterTimestampReached() {
+	if testing.Short() {
+		s.T().Skip("skipping integration test")
+	}
+	ctx := context.Background()
+	address := crypto.PubkeyToAddress(*s.config.PublicKey).Hex()
+
+	encryptedMessages := make([]*shcrypto.EncryptedMessage, 3)
+	identities := make([]string, 3)
+
+	block, err := s.ethClient.BlockByNumber(ctx, nil)
+	s.Require().NoError(err)
+
+	for i := 0; i < 3; i++ {
+		identityPrefix, err := generateRandomBytes(32)
+		s.Require().NoError(err)
+		identityPrefixStringified := hex.EncodeToString(identityPrefix)
+
+		query := fmt.Sprintf("?address=%s&identityPrefix=%s", address, identityPrefixStringified)
+		url := "/api/get_data_for_encryption" + query
+
+		recorder := httptest.NewRecorder()
+		s.router.ServeHTTP(recorder, httptest.NewRequest("GET", url, nil))
+		s.Require().Equal(http.StatusOK, recorder.Code)
+
+		body, err := io.ReadAll(recorder.Body)
+		s.Require().NoError(err)
+
+		var dataForEncryptionResponse map[string]usecase.GetDataForEncryptionResponse
+		err = json.Unmarshal(body, &dataForEncryptionResponse)
+		s.Require().NoError(err)
+
+		res := dataForEncryptionResponse["message"]
+		s.Require().GreaterOrEqual(res.Eon, uint64(1))
+		s.Require().NotNil(res.EonKey)
+		s.Require().NotNil(res.Identity)
+		s.Require().NotNil(res.IdentityPrefix)
+
+		identityBytes, err := hex.DecodeString(strings.TrimPrefix(res.Identity, "0x"))
+		s.Require().NoError(err)
+		eonKeyBytes, err := hex.DecodeString(strings.TrimPrefix(res.EonKey, "0x"))
+		s.Require().NoError(err)
+
+		epochID := shcrypto.ComputeEpochID(identityBytes)
+		eonPublicKey := &shcrypto.EonPublicKey{}
+		err = eonPublicKey.Unmarshal(eonKeyBytes)
+		s.Require().NoError(err)
+
+		sigma, err := shcrypto.RandomSigma(cryptorand.Reader)
+		s.Require().NoError(err)
+		encryptedMessage := shcrypto.Encrypt(msg, eonPublicKey, epochID, sigma)
+		encryptedMessages[i] = encryptedMessage
+
+		decryptionTimestamp := block.Header().Time + 20
+
+		reqBody := service.RegisterIdentityRequest{
+			DecryptionTimestamp: uint64(decryptionTimestamp),
+			IdentityPrefix:      identityPrefixStringified,
+		}
+
+		jsonData, err := json.Marshal(reqBody)
+		s.Require().NoError(err)
+		url = "/api/register_identity"
+
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		s.Require().NoError(err)
+		req.Header.Set("Content-Type", "application/json")
+
+		recorder = httptest.NewRecorder()
+		s.router.ServeHTTP(recorder, req)
+		s.Require().Equal(http.StatusOK, recorder.Code)
+
+		identities[i] = res.Identity
+	}
+
+	time.Sleep(40 * time.Second)
+
+	for i := 0; i < 3; i++ {
+		query := fmt.Sprintf("?identity=%s", identities[i])
+		url := "/api/get_decryption_key" + query
+
+		recorder := httptest.NewRecorder()
+		s.router.ServeHTTP(recorder, httptest.NewRequest("GET", url, nil))
+		s.Require().Equal(http.StatusOK, recorder.Code)
+
+		body, err := io.ReadAll(recorder.Body)
+		s.Require().NoError(err)
+
+		var decryptionKeyResponse map[string]usecase.GetDecryptionKeyResponse
+		err = json.Unmarshal(body, &decryptionKeyResponse)
+		s.Require().NoError(err)
+
+		decryptionKeyStringified := decryptionKeyResponse["message"].DecryptionKey
+		s.Require().NotEmpty(decryptionKeyStringified)
+
+		decryptionKey := &shcrypto.EpochSecretKey{}
+		decryptionKeyBytes, err := hex.DecodeString(strings.TrimPrefix(decryptionKeyStringified, "0x"))
+		s.Require().NoError(err)
+		err = decryptionKey.Unmarshal(decryptionKeyBytes)
+		s.Require().NoError(err)
+
+		decryptedMessage, err := encryptedMessages[i].Decrypt(decryptionKey)
+		s.Require().NoError(err)
+		s.Require().Equal(msg, decryptedMessage)
+	}
+}
